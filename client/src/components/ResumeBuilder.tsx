@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
@@ -13,6 +14,8 @@ import ResumeScoreModal from './ResumeScoreModal';
 import ResumeManager from './ResumeManager';
 import SpellCheckModal from './SpellCheckModal';
 import TemplateCustomizerModal from './TemplateCustomizerModal';
+import Onboarding from './Onboarding';
+import { useToast } from './ToastContext';
 import { getTemplate } from '../templates';
 import { checkApiKey } from '../services/ai';
 import { useUndoRedo } from '../services/undoService';
@@ -86,6 +89,7 @@ const ResumeBuilder = () => {
     const moreMenuRef = useRef<HTMLDivElement>(null);
 
     const hasApiKey = checkApiKey();
+    const toastCtx = useToast();
 
     // Load resume on mount — prefer resume ID from URL, then active resume, then draft
     useEffect(() => {
@@ -246,6 +250,7 @@ const ResumeBuilder = () => {
 
     const handleExportJSON = () => {
         exportResumeAsJSON(formData);
+        toastCtx.success('Resume exported as JSON');
     };
 
     const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -256,10 +261,12 @@ const ResumeBuilder = () => {
             .then(data => {
                 setFormData(prev => ({ ...DEFAULT_FORM_DATA, ...data }));
                 if (fileInputRef.current) fileInputRef.current.value = '';
+                toastCtx.success('Resume imported from JSON');
             })
             .catch((err: Error) => {
                 setImportError(err.message);
                 if (fileInputRef.current) fileInputRef.current.value = '';
+                toastCtx.error(err.message);
             });
     };
 
@@ -329,7 +336,12 @@ const ResumeBuilder = () => {
     };
 
     return (
-        <div className="builder">
+        <motion.div
+            className="builder"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+        >
             {/* Navbar */}
             <nav className="navbar">
                 <div className="container">
@@ -708,7 +720,10 @@ const ResumeBuilder = () => {
                 isOpen={showResumeManager}
                 onClose={() => setShowResumeManager(false)}
             />
-        </div>
+
+            {/* First-run onboarding */}
+            <Onboarding />
+        </motion.div>
     );
 };
 

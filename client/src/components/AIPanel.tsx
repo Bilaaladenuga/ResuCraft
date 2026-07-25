@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useToast } from './ToastContext';
 import { Cpu, Sparkles, Target, Wand2, Wrench, FileText, Activity, Copy, Check, BookmarkPlus, Briefcase } from 'lucide-react';
 import { FormData, ATSData, LoadingState, WritingStyle, WRITING_STYLES } from '../types';
 import { getSavedStyle, saveStyle } from '../services/prompts';
@@ -33,6 +34,7 @@ interface AIPanelProps {
 }
 
 const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelProps) => {
+    const toastCtx = useToast();
     const [loading, setLoading] = useState<LoadingState>({});
     const [error, setError] = useState('');
     const [jobDescription, setJobDescription] = useState('');
@@ -366,6 +368,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
         const title = jobDescription.split('\n')[0].trim().substring(0, 80) || 'Untitled Position';
         createJD(title, formData.designation || '', jobDescription);
         setJdSaved(true);
+        toastCtx.success('Job description saved to repository');
         setTimeout(() => setJdSaved(false), 2000);
     };
 
@@ -376,6 +379,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
     const copyToClipboard = () => {
         navigator.clipboard.writeText(coverLetter);
         setCopied(true);
+        toastCtx.success('Cover letter copied to clipboard');
         setTimeout(() => setCopied(false), 2000);
     };
 

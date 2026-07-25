@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench,
     ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle
@@ -67,6 +67,27 @@ interface ResumeFormProps {
 const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSections, setOpenSections, errors = {}, touched = {}, onSectionTouch }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imageError, setImageError] = useState('');
+
+    // Compute completion percentage
+    const completion = useMemo(() => {
+        let filled = 0;
+        let total = 8; // core fields: name, email, phone, designation, summary, skills, experiences, education
+        if (formData.firstName?.trim() || formData.lastName?.trim()) filled++;
+        if (formData.email?.trim()) filled++;
+        if (formData.phone?.trim()) filled++;
+        if (formData.designation?.trim()) filled++;
+        if (formData.summary?.trim()) filled++;
+        if (formData.skillsRaw?.trim()) filled++;
+        if (formData.experiences?.length > 0) filled++;
+        if (formData.educations?.length > 0) filled++;
+        return Math.round((filled / total) * 100);
+    }, [formData]);
+
+    const getCompletionColor = (pct: number): string => {
+        if (pct >= 80) return 'var(--success)';
+        if (pct >= 40) return 'var(--secondary)';
+        return 'var(--text-dim)';
+    };
 
     const toggleSection = useCallback((sectionId: string) => {
         setOpenSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
@@ -442,6 +463,42 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
 
     return (
         <div>
+            {/* Form Progress Bar */}
+            <div className="form-progress-bar">
+                <div style={{
+                    width: '20px', height: '20px', borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: completion >= 100 ? 'rgba(16, 185, 129, 0.15)' :
+                        completion >= 40 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255,255,255,0.04)',
+                    color: getCompletionColor(completion),
+                    flexShrink: 0,
+                    fontSize: '0.6rem',
+                    fontWeight: 800
+                }}>
+                    {completion >= 100 ? (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    ) : (
+                        <span>{completion}%</span>
+                    )}
+                </div>
+                <div className="form-progress-track">
+                    <div
+                        className="form-progress-fill"
+                        style={{
+                            width: `${completion}%`,
+                            background: getCompletionColor(completion),
+                        }}
+                    />
+                </div>
+                <span className="form-progress-label">
+                    {completion < 40 ? 'Getting started' :
+                     completion < 80 ? 'Building momentum' :
+                     completion < 100 ? 'Almost done!' : 'Complete!'}
+                </span>
+            </div>
+
             {sectionConfig.map(renderSection)}
         </div>
     );

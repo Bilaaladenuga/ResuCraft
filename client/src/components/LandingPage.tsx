@@ -33,7 +33,12 @@ const LandingPage = () => {
     };
 
     return (
-        <div className="landing">
+        <motion.div
+            className="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+        >
             <div className="landing-bg" />
 
             {/* Navbar */}
@@ -306,7 +311,7 @@ const LandingPage = () => {
                 isOpen={showResumeManager}
                 onClose={() => setShowResumeManager(false)}
             />
-        </div>
+        </motion.div>
     );
 };
 

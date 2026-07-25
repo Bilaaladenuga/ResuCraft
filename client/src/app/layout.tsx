@@ -1,5 +1,6 @@
 import './globals.css';
 import React from 'react';
+import ToastProvider from '../components/ToastContext';
 
 export const metadata = {
     title: 'ResuCraft',
@@ -9,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" data-scroll-behavior="smooth">
-            <body>{children}</body>
+            <body>
+                <ToastProvider>{children}</ToastProvider>
+            </body>
         </html>
     );
 }

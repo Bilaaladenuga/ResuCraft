@@ -78,4 +78,7 @@ declare module 'lucide-react' {
     export const Maximize2: Icon;
     export const Minimize2: Icon;
     export const RotateCcw: Icon;
+    export const HelpCircle: Icon;
 }
+
+

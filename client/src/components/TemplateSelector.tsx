@@ -4,6 +4,12 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Sparkles, Code, DollarSign, Heart, Palette, FileText, Scale, BookOpen, ArrowLeft } from 'lucide-react';
 
+const pageTransition = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.35, ease: 'easeOut' as const },
+};
+
 interface TemplateCard {
     id: string;
     name: string;
@@ -88,7 +94,7 @@ const TemplateSelector = () => {
     };
 
     return (
-        <div className="template-selector">
+        <motion.div className="template-selector" {...pageTransition}>
             <nav className="navbar">
                 <div className="container">
                     <div className="navbar-inner">
@@ -162,7 +168,7 @@ const TemplateSelector = () => {
                     ))}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
