@@ -210,6 +210,18 @@ export const FONT_OPTIONS = [
     { value: '"Poppins", sans-serif', label: 'Poppins' },
 ];
 
+export interface SavedCoverLetter {
+    id: string;
+    name: string;
+    recipientName: string;
+    companyName: string;
+    position: string;
+    jobDescription: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export const COLOR_PRESETS = [
     { name: 'Ocean Blue', primary: '#3b82f6', secondary: '#06b6d4' },
     { name: 'Emerald', primary: '#10b981', secondary: '#34d399' },

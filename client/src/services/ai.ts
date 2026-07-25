@@ -630,6 +630,406 @@ export const generateFallbackRewriteBullets = (experienceDesc: string, style: Wr
     return rewritten.join('\n');
 };
 
+/* ============================================
+   Write for Me — Section Generation
+   ============================================ */
+
+/**
+ * AI: Generate experience entries based on role and industry
+ */
+export const generateExperienceEntries = async (
+    role: string,
+    industry: string,
+    style: WritingStyle = 'professional'
+): Promise<string> => {
+    const styleInstr = getStyleInstructions(style);
+    const prompt = `You are a professional resume writer for the ${industry || 'general'} industry.
+Write realistic experience entries for a candidate with the title "${role || 'Professional'}".
+
+Generate 2-3 experience entries with:
+- company name (well-known companies in the field)
+- job title (career progression)
+- location
+- 3-4 achievement-oriented bullet points each
+- Use strong action verbs and quantify results (%, $, numbers)
+
+${styleInstr}
+
+Return the data in this EXACT format for EACH entry, separated by "---":
+TITLE: Software Engineer
+COMPANY: Google
+LOCATION: Mountain View, CA
+START: 2022-01
+END: Present
+BULLETS:
+- Led development of a microservices platform, reducing API latency by 40%
+- Collaborated with cross-functional teams to deliver 15+ features
+- Mentored 3 junior engineers through structured code review process
+
+---
+TITLE: ...
+COMPANY: ...
+LOCATION: ...
+START: ...
+END: ...
+BULLETS:
+- ...
+
+Rules:
+- Dates should be realistic (recent years, START before END)
+- Each entry should have 3-4 bullet points
+- Bullets should be achievement-oriented with metrics
+- Do NOT include any markdown formatting or extra text
+- Return ONLY the structured entries`;
+
+    return generateWithProvider(prompt);
+};
+
+/**
+ * Fallback: Generate experience entries without AI
+ */
+export const generateFallbackExperienceEntries = (role: string, industry: string): string => {
+    const industryCompanies: Record<string, string[]> = {
+        technology: ['TechCorp', 'InnovateSoft', 'DataDriven Inc.'],
+        finance: ['Goldman & Partners', 'Meridian Capital', 'Pinnacle Financial'],
+        healthcare: ['MedStar Health', 'CareFirst Medical', 'HealthBridge Systems'],
+        'creative design': ['Creative Agency Co.', 'DesignLab Studio', 'BrandCraft Media'],
+        legal: ['Morgan & Associates', 'Sterling Legal Group', 'Justice Law Firm'],
+        education: ['Lincoln Academy', 'Summit School District', 'Bright Future University']
+    };
+
+    const companies = industryCompanies[industry?.toLowerCase()] || industryCompanies.technology;
+    const title = role || 'Professional';
+    const now = new Date();
+    const y = now.getFullYear();
+
+    return `TITLE: ${title}
+COMPANY: ${companies[0]}
+LOCATION: New York, NY
+START: ${y - 3}-01
+END: Present
+BULLETS:
+- Led key initiatives that improved team productivity by 35% through streamlined workflows
+- Collaborated with stakeholders to deliver 10+ major projects on time and under budget
+- Developed and implemented best practices, reducing error rates by 25%
+
+---
+TITLE: Junior ${title}
+COMPANY: ${companies[1]}
+LOCATION: Boston, MA
+START: ${y - 5}-06
+END: ${y - 3}-12
+BULLETS:
+- Supported senior team members in delivering critical client projects
+- Analyzed data to identify trends, contributing to a 15% increase in operational efficiency
+- Earned recognition for exceptional problem-solving and teamwork`;
+};
+
+/**
+ * AI: Generate education entries
+ */
+export const generateEducationEntries = async (
+    role: string,
+    industry: string,
+    style: WritingStyle = 'professional'
+): Promise<string> => {
+    const styleInstr = getStyleInstructions(style);
+    const prompt = `You are a resume expert for the ${industry || 'general'} industry.
+Generate 1-2 realistic education entries for a ${role || 'professional'}.
+
+Return in this EXACT format, with "---" between entries:
+SCHOOL: Massachusetts Institute of Technology
+DEGREE: Bachelor of Science in Computer Science
+CITY: Cambridge, MA
+START: 2016-09
+END: 2020-06
+DESCRIPTION: Relevant coursework: Data Structures, Algorithms, Machine Learning. Dean's List. GPA: 3.8
+
+---
+SCHOOL: ...
+DEGREE: ...
+...
+
+Rules:
+- Return ONLY the structured data, no extra text
+- No markdown formatting`;
+
+    return generateWithProvider(prompt);
+};
+
+/**
+ * Fallback: Generate education entries without AI
+ */
+export const generateFallbackEducationEntries = (role: string, industry: string): string => {
+    const now = new Date();
+    const y = now.getFullYear();
+
+    const schools: Record<string, { school: string; degree: string; city: string }[]> = {
+        technology: [
+            { school: 'Massachusetts Institute of Technology', degree: 'B.S. in Computer Science', city: 'Cambridge, MA' },
+            { school: 'Stanford University', degree: 'M.S. in Software Engineering', city: 'Stanford, CA' }
+        ],
+        finance: [
+            { school: 'Wharton School of Business', degree: 'B.S. in Finance', city: 'Philadelphia, PA' },
+            { school: 'London School of Economics', degree: 'M.Sc. in Financial Economics', city: 'London, UK' }
+        ],
+        healthcare: [
+            { school: 'Johns Hopkins University', degree: 'B.S. in Nursing', city: 'Baltimore, MD' },
+            { school: 'Harvard Medical School', degree: 'M.D. in Medicine', city: 'Boston, MA' }
+        ],
+        'creative design': [
+            { school: 'Rhode Island School of Design', degree: 'B.F.A. in Graphic Design', city: 'Providence, RI' },
+            { school: 'California Institute of the Arts', degree: 'M.F.A. in Design', city: 'Valencia, CA' }
+        ],
+        legal: [
+            { school: 'Harvard Law School', degree: 'J.D. in Law', city: 'Cambridge, MA' },
+            { school: 'Yale University', degree: 'B.A. in Political Science', city: 'New Haven, CT' }
+        ],
+        education: [
+            { school: 'Teachers College, Columbia University', degree: 'M.A. in Education', city: 'New York, NY' },
+            { school: 'University of Michigan', degree: 'B.A. in Elementary Education', city: 'Ann Arbor, MI' }
+        ]
+    };
+
+    const entries = schools[industry?.toLowerCase()] || schools.technology;
+    return entries.map((e, i) => {
+        const gradYear = y - 4 - i;
+        return `SCHOOL: ${e.school}
+DEGREE: ${e.degree}
+CITY: ${e.city}
+START: ${gradYear - 4}-09
+END: ${gradYear}-06
+DESCRIPTION: Relevant coursework and projects. Dean's List. Graduated with honors.`;
+    }).join('\n\n---\n\n');
+};
+
+/**
+ * AI: Generate project entries
+ */
+export const generateProjectEntries = async (
+    role: string,
+    industry: string,
+    skills: string,
+    style: WritingStyle = 'professional'
+): Promise<string> => {
+    const styleInstr = getStyleInstructions(style);
+    const prompt = `You are a resume expert for the ${industry || 'general'} industry.
+Generate 1-2 realistic project entries for a ${role || 'professional'}.
+Skills to highlight: ${skills || 'relevant technical skills'}.
+
+Return in this EXACT format, with "---" between entries:
+TITLE: E-Commerce Platform
+LINK: https://github.com/username/project
+DESCRIPTION: Built a full-stack e-commerce platform using React, Node.js, and PostgreSQL. Implemented payment processing with Stripe API, reduced checkout time by 60%, and handled 10K+ daily users.
+
+---
+TITLE: ...
+LINK: ...
+DESCRIPTION: ...
+
+Rules:
+- Return ONLY the structured data, no extra text
+- No markdown formatting`;
+
+    return generateWithProvider(prompt);
+};
+
+/**
+ * Fallback: Generate project entries without AI
+ */
+export const generateFallbackProjectEntries = (role: string, industry: string, skills: string): string => {
+    const primarySkills = skills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 3).join(', ') || 'relevant technologies';
+    return `TITLE: Industry Analysis Dashboard
+LINK: https://github.com/username/dashboard
+DESCRIPTION: Built an interactive analytics dashboard using ${primarySkills}. Processed and visualized large datasets, enabling data-driven decision making that improved reporting efficiency by 40%.
+
+---
+TITLE: Automation Framework
+LINK: https://github.com/username/automation
+DESCRIPTION: Developed a custom automation framework that streamlined ${industry || 'business'} workflows, reducing manual processing time by 60% and eliminating recurring errors.`;
+};
+
+/**
+ * AI: Generate achievement entries
+ */
+export const generateAchievementEntries = async (
+    role: string,
+    industry: string,
+    style: WritingStyle = 'professional'
+): Promise<string> => {
+    const styleInstr = getStyleInstructions(style);
+    const prompt = `You are a resume expert for the ${industry || 'general'} industry.
+Generate 2-3 realistic professional achievements for a ${role || 'professional'}.
+
+Return in this EXACT format, with "---" between entries:
+TITLE: Employee of the Year
+DESCRIPTION: Awarded Employee of the Year for exceptional performance and leadership, recognized across the organization for delivering outstanding results.
+
+---
+TITLE: ...
+DESCRIPTION: ...
+
+Rules:
+- Achievements should be impressive but believable
+- Return ONLY the structured data, no extra text
+- No markdown formatting`;
+
+    return generateWithProvider(prompt);
+};
+
+/**
+ * Fallback: Generate achievement entries without AI
+ */
+export const generateFallbackAchievementEntries = (): string => {
+    return `TITLE: Excellence in Performance Award
+DESCRIPTION: Recognized for consistently exceeding performance targets and demonstrating exceptional leadership across multiple teams.
+
+---
+TITLE: Innovation Spotlight
+DESCRIPTION: Selected to present an innovative solution at the annual company innovation showcase, resulting in company-wide adoption.
+
+---
+TITLE: Top Performer Recognition
+DESCRIPTION: Achieved top 5% performance rating for three consecutive quarters, contributing to a 25% increase in team output.`;
+};
+
+/**
+ * Parse generated experience entries into structured format
+ */
+export const parseExperienceEntries = (raw: string): Array<{
+    title: string; company: string; location: string;
+    startDate: string; endDate: string; description: string;
+}> => {
+    const entries: Array<{
+        title: string; company: string; location: string;
+        startDate: string; endDate: string; description: string;
+    }> = [];
+
+    const blocks = raw.split(/---+/).map(b => b.trim()).filter(Boolean);
+    for (const block of blocks) {
+        const getVal = (prefix: string): string => {
+            const match = block.match(new RegExp(`${prefix}[:\\s]+(.+)`, 'i'));
+            return match ? match[1].trim() : '';
+        };
+        const bulletsMatch = block.match(/BULLETS:[\s\S]*$/i);
+        const bullets = bulletsMatch
+            ? bulletsMatch[0]
+                .replace(/^BULLETS:\s*/i, '')
+                .split('\n')
+                .map(l => l.replace(/^[-•]\s*/, '').trim())
+                .filter(Boolean)
+            : [];
+
+        const title = getVal('TITLE');
+        if (!title) continue;
+
+        entries.push({
+            title,
+            company: getVal('COMPANY'),
+            location: getVal('LOCATION'),
+            startDate: getVal('START'),
+            endDate: getVal('END'),
+            description: bullets.join('\n')
+        });
+    }
+
+    return entries;
+};
+
+/**
+ * Parse generated education entries into structured format
+ */
+export const parseEducationEntries = (raw: string): Array<{
+    school: string; degree: string; city: string;
+    startDate: string; endDate: string; description: string;
+}> => {
+    const entries: Array<{
+        school: string; degree: string; city: string;
+        startDate: string; endDate: string; description: string;
+    }> = [];
+
+    const blocks = raw.split(/---+/).map(b => b.trim()).filter(Boolean);
+    for (const block of blocks) {
+        const getVal = (prefix: string): string => {
+            const match = block.match(new RegExp(`${prefix}[:\\s]+(.+)`, 'i'));
+            return match ? match[1].trim() : '';
+        };
+
+        const school = getVal('SCHOOL');
+        if (!school) continue;
+
+        entries.push({
+            school,
+            degree: getVal('DEGREE'),
+            city: getVal('CITY'),
+            startDate: getVal('START'),
+            endDate: getVal('END'),
+            description: getVal('DESCRIPTION')
+        });
+    }
+
+    return entries;
+};
+
+/**
+ * Parse generated project entries into structured format
+ */
+export const parseProjectEntries = (raw: string): Array<{
+    title: string; link: string; description: string;
+}> => {
+    const entries: Array<{
+        title: string; link: string; description: string;
+    }> = [];
+
+    const blocks = raw.split(/---+/).map(b => b.trim()).filter(Boolean);
+    for (const block of blocks) {
+        const getVal = (prefix: string): string => {
+            const match = block.match(new RegExp(`${prefix}[:\\s]+(.+)`, 'i'));
+            return match ? match[1].trim() : '';
+        };
+
+        const title = getVal('TITLE');
+        if (!title) continue;
+
+        entries.push({
+            title,
+            link: getVal('LINK'),
+            description: getVal('DESCRIPTION')
+        });
+    }
+
+    return entries;
+};
+
+/**
+ * Parse generated achievement entries into structured format
+ */
+export const parseAchievementEntries = (raw: string): Array<{
+    title: string; description: string;
+}> => {
+    const entries: Array<{
+        title: string; description: string;
+    }> = [];
+
+    const blocks = raw.split(/---+/).map(b => b.trim()).filter(Boolean);
+    for (const block of blocks) {
+        const getVal = (prefix: string): string => {
+            const match = block.match(new RegExp(`${prefix}[:\\s]+(.+)`, 'i'));
+            return match ? match[1].trim() : '';
+        };
+
+        const title = getVal('TITLE');
+        if (!title) continue;
+
+        entries.push({
+            title,
+            description: getVal('DESCRIPTION')
+        });
+    }
+
+    return entries;
+};
+
 export const checkApiKey = (): boolean => {
     if (typeof localStorage === 'undefined') return false;
 

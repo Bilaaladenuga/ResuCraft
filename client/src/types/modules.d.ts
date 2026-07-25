@@ -79,6 +79,11 @@ declare module 'lucide-react' {
     export const Minimize2: Icon;
     export const RotateCcw: Icon;
     export const HelpCircle: Icon;
+    export const BookmarkPlus: Icon;
+    export const Briefcase: Icon;
+    export const Clock: Icon;
+    export const Building: Icon;
 }
+
 
 

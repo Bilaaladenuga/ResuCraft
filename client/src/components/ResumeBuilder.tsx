@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -14,6 +14,7 @@ import ResumeScoreModal from './ResumeScoreModal';
 import ResumeManager from './ResumeManager';
 import SpellCheckModal from './SpellCheckModal';
 import TemplateCustomizerModal from './TemplateCustomizerModal';
+import CoverLetterBuilder from './CoverLetterBuilder';
 import Onboarding from './Onboarding';
 import { useToast } from './ToastContext';
 import { getTemplate } from '../templates';
@@ -77,6 +78,7 @@ const ResumeBuilder = () => {
     const [showScoreModal, setShowScoreModal] = useState(false);
     const [showSpellCheck, setShowSpellCheck] = useState(false);
     const [showCustomizer, setShowCustomizer] = useState(false);
+    const [showCoverLetter, setShowCoverLetter] = useState(false);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -606,6 +608,11 @@ const ResumeBuilder = () => {
                                                             <PaintBucket size={13} /> Customize
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
+                                                            <FileText size={13} /> Cover Letter
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <TrendingUp size={13} /> Score
@@ -667,6 +674,7 @@ const ResumeBuilder = () => {
                         errors={errors}
                         touched={touched}
                         onSectionTouch={handleSectionTouch}
+                        industry={template.industry}
                     />
                     <AIPanel
                         formData={formData}
@@ -704,6 +712,15 @@ const ResumeBuilder = () => {
                 isOpen={showSpellCheck}
                 onClose={() => setShowSpellCheck(false)}
                 formData={formData}
+            />
+
+            {/* Cover Letter Builder */}
+            <CoverLetterBuilder
+                isOpen={showCoverLetter}
+                onClose={() => setShowCoverLetter(false)}
+                formData={formData}
+                industry={template.industry}
+                onOpenSettings={() => setShowSettings(true)}
             />
 
             {/* Template Customizer Modal */}

@@ -1,4 +1,4 @@
-import { FormData, StoredDraft, StoredResume, ResumeMeta, ExportedResume, SavedJD, TemplateCustomization, DEFAULT_CUSTOMIZATION } from '../types';
+import { FormData, StoredDraft, StoredResume, ResumeMeta, ExportedResume, SavedJD, TemplateCustomization, DEFAULT_CUSTOMIZATION, SavedCoverLetter } from '../types';
 
 const STORAGE_PREFIX = 'resucraft_';
 const OLD_PREFIX = 'resumeforge_';
@@ -480,4 +480,89 @@ export function clearCustomization(templateId: string): boolean {
     } catch {
         return false;
     }
+}
+
+// ─── Cover Letter Storage ───
+
+const CL_INDEX_KEY = `${STORAGE_PREFIX}cl_index`;
+const CL_KEY = (id: string): string => `${STORAGE_PREFIX}cl_${id}`;
+
+export function getCoverLetterIndex(): SavedCoverLetter[] {
+    try {
+        const raw = localStorage.getItem(CL_INDEX_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveCoverLetterIndex(index: SavedCoverLetter[]): void {
+    try {
+        localStorage.setItem(CL_INDEX_KEY, JSON.stringify(index));
+    } catch (err) {
+        console.error('Failed to save cover letter index:', err);
+    }
+}
+
+export function saveCoverLetter(cl: SavedCoverLetter): boolean {
+    try {
+        const key = CL_KEY(cl.id);
+        localStorage.setItem(key, JSON.stringify(cl));
+        const index = getCoverLetterIndex();
+        const existingIdx = index.findIndex(c => c.id === cl.id);
+        const entry = { ...cl, updatedAt: new Date().toISOString() };
+        if (existingIdx !== -1) {
+            index[existingIdx] = entry;
+        } else {
+            index.push(entry);
+        }
+        saveCoverLetterIndex(index);
+        return true;
+    } catch (err) {
+        console.error('Failed to save cover letter:', err);
+        return false;
+    }
+}
+
+export function getCoverLetterById(id: string): SavedCoverLetter | null {
+    try {
+        const raw = localStorage.getItem(CL_KEY(id));
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+export function deleteCoverLetter(id: string): void {
+    try {
+        localStorage.removeItem(CL_KEY(id));
+        const index = getCoverLetterIndex().filter(c => c.id !== id);
+        saveCoverLetterIndex(index);
+    } catch (err) {
+        console.error('Failed to delete cover letter:', err);
+    }
+}
+
+export function createCoverLetter(
+    name: string,
+    recipientName: string,
+    companyName: string,
+    position: string,
+    jobDescription: string,
+    content: string
+): SavedCoverLetter {
+    const now = new Date().toISOString();
+    const cl: SavedCoverLetter = {
+        id: generateId(),
+        name,
+        recipientName,
+        companyName,
+        position,
+        jobDescription,
+        content,
+        createdAt: now,
+        updatedAt: now
+    };
+    saveCoverLetter(cl);
+    return cl;
 }

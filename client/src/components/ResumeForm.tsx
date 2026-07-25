@@ -1,9 +1,29 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench,
-    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle
+    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles
 } from 'lucide-react';
-import { FormData, OpenSections, ValidationErrors, TouchedSections } from '../types';
+import { FormData, OpenSections, ValidationErrors, TouchedSections, WritingStyle } from '../types';
+import { getSavedStyle } from '../services/prompts';
+import {
+    checkApiKey,
+    generateSummary,
+    generateExperienceEntries,
+    generateEducationEntries,
+    generateProjectEntries,
+    generateAchievementEntries,
+    generateSkills,
+    generateFallbackSummary,
+    generateFallbackExperienceEntries,
+    generateFallbackEducationEntries,
+    generateFallbackProjectEntries,
+    generateFallbackAchievementEntries,
+    generateFallbackSkills,
+    parseExperienceEntries,
+    parseEducationEntries,
+    parseProjectEntries,
+    parseAchievementEntries
+} from '../services/ai';
 
 interface SectionConfig {
     id: string;
@@ -62,11 +82,164 @@ interface ResumeFormProps {
     errors?: ValidationErrors;
     touched?: TouchedSections;
     onSectionTouch?: (section: string) => void;
+    industry?: string;
 }
 
-const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSections, setOpenSections, errors = {}, touched = {}, onSectionTouch }) => {
+const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSections, setOpenSections, errors = {}, touched = {}, onSectionTouch, industry = '' }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imageError, setImageError] = useState('');
+    const [writeLoading, setWriteLoading] = useState<string | null>(null);
+    const [writeError, setWriteError] = useState('');
+    const hasApiKey = checkApiKey();
+    const writingStyle: WritingStyle = getSavedStyle();
+
+    const generateForSection = useCallback(async (sectionId: string) => {
+        setWriteLoading(sectionId);
+        setWriteError('');
+
+        try {
+            switch (sectionId) {
+                case 'about': {
+                    // Generate summary
+                    let summary = '';
+                    if (hasApiKey) {
+                        summary = await generateSummary({
+                            name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
+                            role: formData.designation || '',
+                            experience: (formData.experiences || []).map(e => `${e.title} at ${e.company}: ${e.description}`).join('. '),
+                            skills: formData.skillsRaw || '',
+                            industry
+                        }, writingStyle);
+                    } else {
+                        summary = generateFallbackSummary({
+                            name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
+                            role: formData.designation || '',
+                            experience: '',
+                            skills: '',
+                            industry
+                        }, writingStyle);
+                    }
+                    setFormData(prev => ({ ...prev, summary }));
+                    break;
+                }
+                case 'experience': {
+                    let raw = '';
+                    if (hasApiKey) {
+                        raw = await generateExperienceEntries(
+                            formData.designation || 'Professional',
+                            industry,
+                            writingStyle
+                        );
+                    } else {
+                        raw = generateFallbackExperienceEntries(
+                            formData.designation || 'Professional',
+                            industry
+                        );
+                    }
+                    const entries = parseExperienceEntries(raw);
+                    if (entries.length > 0) {
+                        setFormData(prev => ({
+                            ...prev,
+                            experiences: entries.map(e => ({ ...e, id: Date.now() + Math.random() * 1000 }))
+                        }));
+                    }
+                    break;
+                }
+                case 'education': {
+                    let raw = '';
+                    if (hasApiKey) {
+                        raw = await generateEducationEntries(
+                            formData.designation || 'Professional',
+                            industry,
+                            writingStyle
+                        );
+                    } else {
+                        raw = generateFallbackEducationEntries(
+                            formData.designation || 'Professional',
+                            industry
+                        );
+                    }
+                    const entries = parseEducationEntries(raw);
+                    if (entries.length > 0) {
+                        setFormData(prev => ({
+                            ...prev,
+                            educations: entries.map(e => ({ ...e, id: Date.now() + Math.random() * 1000 }))
+                        }));
+                    }
+                    break;
+                }
+                case 'skills': {
+                    let skills = '';
+                    if (hasApiKey) {
+                        skills = await generateSkills({
+                            role: formData.designation || '',
+                            rawSkills: formData.skillsRaw || '',
+                            industry
+                        }, writingStyle);
+                    } else {
+                        skills = generateFallbackSkills({
+                            role: formData.designation || '',
+                            rawSkills: formData.skillsRaw || '',
+                            industry
+                        });
+                    }
+                    setFormData(prev => ({ ...prev, skillsRaw: skills }));
+                    break;
+                }
+                case 'projects': {
+                    let raw = '';
+                    if (hasApiKey) {
+                        raw = await generateProjectEntries(
+                            formData.designation || 'Professional',
+                            industry,
+                            formData.skillsRaw || '',
+                            writingStyle
+                        );
+                    } else {
+                        raw = generateFallbackProjectEntries(
+                            formData.designation || 'Professional',
+                            industry,
+                            formData.skillsRaw || ''
+                        );
+                    }
+                    const entries = parseProjectEntries(raw);
+                    if (entries.length > 0) {
+                        setFormData(prev => ({
+                            ...prev,
+                            projects: entries.map(e => ({ ...e, id: Date.now() + Math.random() * 1000 }))
+                        }));
+                    }
+                    break;
+                }
+                case 'achievements': {
+                    let raw = '';
+                    if (hasApiKey) {
+                        raw = await generateAchievementEntries(
+                            formData.designation || 'Professional',
+                            industry,
+                            writingStyle
+                        );
+                    } else {
+                        raw = generateFallbackAchievementEntries();
+                    }
+                    const entries = parseAchievementEntries(raw);
+                    if (entries.length > 0) {
+                        setFormData(prev => ({
+                            ...prev,
+                            achievements: entries.map(e => ({ ...e, id: Date.now() + Math.random() * 1000 }))
+                        }));
+                    }
+                    break;
+                }
+            }
+        } catch (err) {
+            console.error(`Write for Me (${sectionId}) failed:`, err);
+            setWriteError(`AI generation failed for this section. Please try again or fill it manually.`);
+        } finally {
+            setWriteLoading(null);
+            setTimeout(() => setWriteError(''), 4000);
+        }
+    }, [formData, setFormData, industry, writingStyle, hasApiKey]);
 
     // Compute completion percentage
     const completion = useMemo(() => {
@@ -153,6 +326,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     const renderSection = (section: SectionConfig) => {
         const isOpen = openSections[section.id];
         const hasSectionError = touched[section.id] && errors[section.id] && Object.keys(errors[section.id]).length > 0;
+        const isLoading = writeLoading === section.id;
 
         return (
             <div key={section.id} className={`form-section ${isOpen ? 'open' : ''}`}>
@@ -166,7 +340,34 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                         {section.title}
                         {hasSectionError && <AlertCircle size={12} color="var(--danger)" />}
                     </div>
-                    {isOpen ? <ChevronUp size={16} color="var(--text-muted)" /> : <ChevronDown size={16} color="var(--text-muted)" />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={e => { e.stopPropagation(); generateForSection(section.id); }}
+                            disabled={isLoading}
+                            title={`AI-generate ${section.title.toLowerCase()} content`}
+                            style={{
+                                padding: '0.25rem 0.4rem',
+                                fontSize: '0.6rem',
+                                color: 'var(--accent)',
+                                opacity: isLoading ? 0.5 : 0.7,
+                                transition: 'all 0.2s',
+                                textTransform: 'none',
+                                letterSpacing: 'normal',
+                                fontWeight: 500
+                            }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}
+                        >
+                            {isLoading ? (
+                                <span className="spinner" style={{ width: '12px', height: '12px', borderWidth: '1.5px' }} />
+                            ) : (
+                                <Sparkles size={12} />
+                            )}
+                            <span style={{ marginLeft: '2px' }}>{isLoading ? 'Writing...' : 'Write for Me'}</span>
+                        </button>
+                        {isOpen ? <ChevronUp size={16} color="var(--text-muted)" /> : <ChevronDown size={16} color="var(--text-muted)" />}
+                    </div>
                 </div>
 
                 {isOpen && (
@@ -177,6 +378,22 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                         {section.id === 'projects' && renderProjectsSection()}
                         {section.id === 'skills' && renderSkillsSection()}
                         {section.id === 'achievements' && renderAchievementsSection()}
+                        {writeError && (
+                            <div style={{
+                                padding: '0.4rem 0.6rem',
+                                background: 'rgba(239, 68, 68, 0.08)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                borderRadius: 'var(--radius-sm)',
+                                fontSize: '0.7rem',
+                                color: 'var(--text-muted)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}>
+                                <AlertCircle size={10} color="var(--danger)" />
+                                {writeError}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
