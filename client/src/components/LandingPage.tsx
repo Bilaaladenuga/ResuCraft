@@ -78,7 +78,7 @@ const LandingPage = () => {
                         tailored for humans, and powered by Gemini.
                     </p>
 
-                    <div className="landing-cta">
+                    <div className="landing-actions">
                         <button
                             className="btn btn-primary btn-lg"
                             onClick={() => router.push('/templates')}
@@ -89,7 +89,6 @@ const LandingPage = () => {
                         <button
                             className="btn btn-secondary btn-lg"
                             onClick={() => setShowResumeManager(true)}
-                            style={{ marginLeft: '1rem' }}
                         >
                             <Files size={18} /> My Resumes
                         </button>

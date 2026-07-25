@@ -468,6 +468,7 @@ img {
     align-items: center;
     gap: 12px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .navbar-brand-text {
@@ -480,9 +481,11 @@ img {
 .navbar-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    flex: 1;
+    min-width: 0;
 }
 
 .status-badge {
@@ -1346,6 +1349,13 @@ img {
     white-space: nowrap;
 }
 
+/* ---------- Landing CTA Actions ---------- */
+.landing-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 /* ---------- Page Transitions ---------- */
 .page-enter {
     opacity: 0;
@@ -1527,6 +1537,11 @@ img {
         overflow: visible;
     }
 
+    .builder-right {
+        max-width: 794px;
+        margin: 0 auto;
+    }
+
     .section-grid {
         grid-template-columns: 1fr;
         text-align: center;
@@ -1544,11 +1559,41 @@ img {
 
 @media (max-width: 768px) {
     .container {
-        padding: 0 1.5rem;
+        padding: 0 1.25rem;
+    }
+
+    .navbar {
+        padding: 0.85rem 0;
+    }
+
+    .navbar-brand-text {
+        display: none;
+    }
+
+    .navbar-actions .btn-sm {
+        padding: 0.4rem 0.55rem;
+        font-size: 0.7rem;
+    }
+
+    .navbar-actions .status-badge span {
+        display: none;
     }
 
     .landing-title {
         font-size: 2.5rem;
+    }
+
+    .landing-hero {
+        padding: 140px 0 60px;
+    }
+
+    .landing-features {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+
+    .template-selector {
+        padding: 6rem 1.25rem 3rem;
     }
 
     .template-grid {
@@ -1557,5 +1602,293 @@ img {
 
     .form-row {
         grid-template-columns: 1fr;
+    }
+
+    .builder-content {
+        padding: 1.25rem;
+    }
+
+    .builder-left {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .form-section {
+        margin-bottom: 0.75rem;
+    }
+
+    .form-section-content {
+        padding: 1rem 0.85rem;
+    }
+
+    .form-section-header {
+        padding: 0.75rem 0.85rem;
+    }
+
+    .repeater-item {
+        padding: 1rem 0.85rem;
+    }
+
+    .modal-card {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+
+    .modal-card h2 {
+        font-size: 1rem;
+    }
+
+    .showcase-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+
+    .features-grid-large {
+        grid-template-columns: 1fr;
+    }
+
+    .section-grid {
+        gap: 30px;
+    }
+}
+
+/* ---------- Mobile (480px and below) ---------- */
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0.65rem 0;
+    }
+
+    .navbar-actions {
+        gap: 4px;
+    }
+
+    .navbar-actions .btn-sm {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.65rem;
+    }
+
+    .navbar-actions .btn-sm svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .container {
+        padding: 0 1rem;
+    }
+
+    .builder-content {
+        padding: 1rem;
+    }
+
+    .builder {
+        padding-top: 4rem;
+    }
+
+    .landing-title {
+        font-size: 1.8rem;
+        letter-spacing: -1px;
+    }
+
+    .landing-subtitle {
+        font-size: 0.95rem;
+        padding: 0 1rem;
+    }
+
+    .landing-hero {
+        padding: 120px 0 40px;
+    }
+
+    .landing-badge {
+        font-size: 0.65rem;
+        padding: 4px 12px;
+    }
+
+    .hero-mockup-wrapper {
+        margin-top: 40px;
+        padding: 0 10px;
+    }
+
+    .feature-card {
+        padding: 24px 20px;
+    }
+
+    .template-grid {
+        gap: 1rem;
+    }
+
+    .template-card-info {
+        padding: 1rem;
+    }
+
+    .template-card-preview {
+        height: 160px;
+    }
+
+    .form-section-content {
+        padding: 0.75rem 0.65rem;
+    }
+
+    .form-section-header {
+        padding: 0.6rem 0.65rem;
+    }
+
+    .form-section-title {
+        font-size: 0.8rem;
+    }
+
+    .form-label {
+        font-size: 0.7rem;
+    }
+
+    .form-input {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .repeater-item {
+        padding: 0.85rem 0.65rem;
+    }
+
+    .repeater-add-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+
+    .modal-card {
+        margin: 0 0.5rem;
+        padding: 1.25rem;
+    }
+
+    .modal-overlay {
+        padding: 0.5rem;
+    }
+
+    .ai-panel {
+        padding: 1rem;
+    }
+
+    .step-card {
+        padding: 28px 20px;
+    }
+
+    .steps-grid {
+        gap: 20px;
+    }
+
+    .section {
+        padding: 40px 0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .landing-features {
+        gap: 16px;
+        margin-top: 40px;
+        margin-bottom: 60px;
+    }
+
+    .landing-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .landing-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .value-list-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer {
+        padding: 40px 0 24px;
+    }
+
+    .footer-links {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .footer-grid {
+        gap: 30px;
+    }
+
+    .showcase-grid {
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .form-progress-bar {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .form-progress-label {
+        font-size: 0.6rem;
+    }
+
+    .template-selector-header {
+        margin-bottom: 2rem;
+    }
+
+    .template-selector {
+        padding: 5rem 1rem 2rem;
+    }
+
+    .linkedin-modal {
+        padding: 1rem;
+    }
+
+    .ats-score-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .landing-bg::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .landing-bg::after {
+        width: 250px;
+        height: 250px;
+    }
+}
+
+/* ---------- Touch-friendly improvements ---------- */
+@media (hover: none) and (pointer: coarse) {
+    .btn-sm {
+        min-height: 36px;
+    }
+
+    .form-input {
+        font-size: 16px !important; /* Prevents iOS zoom on input focus */
+    }
+
+    .repeater-add-btn {
+        min-height: 44px;
+    }
+
+    .modal-card .btn {
+        min-height: 44px;
+    }
+
+    select,
+    input[type="month"],
+    input[type="file"] {
+        font-size: 16px !important;
+    }
+
+    .status-badge {
+        min-height: 28px;
     }
 }
