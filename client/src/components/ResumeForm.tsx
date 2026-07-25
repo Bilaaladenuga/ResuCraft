@@ -1,7 +1,8 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
+import { Reorder } from 'framer-motion';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench,
-    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles
+    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical
 } from 'lucide-react';
 import { FormData, OpenSections, ValidationErrors, TouchedSections, WritingStyle } from '../types';
 import { getSavedStyle } from '../services/prompts';
@@ -299,6 +300,14 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         reader.readAsDataURL(file);
     }, [handleChange]);
 
+    // Reorder helper for drag & drop
+    const reorderRepeaterItems = useCallback((field: string, reordered: any[]) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: reordered
+        }));
+    }, [setFormData]);
+
     // Repeater helpers
     const addRepeaterItem = useCallback((field: string, template: Record<string, any>) => {
         setFormData(prev => ({
@@ -518,120 +527,204 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         );
     };
 
-    const renderExperienceSection = () => (
-        <>
-            {(formData.experiences || []).map((exp) => (
-                <div key={exp.id} className="repeater-item">
-                    <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('experiences', exp.id)}>
-                        <X size={12} />
-                    </button>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Job Title</label>
-                            <input className="form-input" placeholder="e.g. Software Engineer" value={exp.title || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'title', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Company</label>
-                            <input className="form-input" placeholder="e.g. Google" value={exp.company || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'company', e.target.value)} />
-                        </div>
-                    </div>
-                    <div className="form-row" style={{ marginTop: '0.75rem' }}>
-                        <div className="form-group">
-                            <label className="form-label">Location</label>
-                            <input className="form-input" placeholder="e.g. Mountain View, CA" value={exp.location || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'location', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Start Date</label>
-                            <input className="form-input" type="month" value={exp.startDate || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'startDate', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">End Date</label>
-                            <input className="form-input" type="month" value={exp.endDate || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'endDate', e.target.value)} placeholder="Present" />
-                        </div>
-                    </div>
-                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                        <label className="form-label">Description (one bullet per line)</label>
-                        <textarea className="form-input" placeholder="Managed a team of 5 engineers..." value={exp.description || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'description', e.target.value)} style={{ minHeight: '80px' }} />
-                    </div>
-                </div>
-            ))}
-            <button className="repeater-add-btn" onClick={() => addRepeaterItem('experiences', { title: '', company: '', location: '', startDate: '', endDate: '', description: '' })}>
-                <Plus size={14} /> Add Experience
-            </button>
-        </>
-    );
+    const renderExperienceSection = () => {
+        const items = formData.experiences || [];
+        return (
+            <>
+                <Reorder.Group axis="y" values={items} onReorder={(reordered) => reorderRepeaterItems('experiences', reordered)} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map((exp) => (
+                        <Reorder.Item key={exp.id} value={exp} className="repeater-item" style={{ position: 'relative', listStyle: 'none' }}>
+                            <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('experiences', exp.id)}>
+                                <X size={12} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '0.75rem' }}>
+                                <button
+                                    className="drag-handle"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder this item"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        padding: '2px 0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        transition: 'color 0.15s'
+                                    }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'; }}
+                                >
+                                    <GripVertical size={16} />
+                                </button>
+                                <div style={{ flex: 1 }}>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Job Title</label>
+                                            <input className="form-input" placeholder="e.g. Software Engineer" value={exp.title || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'title', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Company</label>
+                                            <input className="form-input" placeholder="e.g. Google" value={exp.company || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'company', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="form-row" style={{ marginTop: '0.75rem' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">Location</label>
+                                            <input className="form-input" placeholder="e.g. Mountain View, CA" value={exp.location || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'location', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Start Date</label>
+                                            <input className="form-input" type="month" value={exp.startDate || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'startDate', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">End Date</label>
+                                            <input className="form-input" type="month" value={exp.endDate || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'endDate', e.target.value)} placeholder="Present" />
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                        <label className="form-label">Description (one bullet per line)</label>
+                                        <textarea className="form-input" placeholder="Managed a team of 5 engineers..." value={exp.description || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'description', e.target.value)} style={{ minHeight: '80px' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <button className="repeater-add-btn" onClick={() => addRepeaterItem('experiences', { title: '', company: '', location: '', startDate: '', endDate: '', description: '' })}>
+                    <Plus size={14} /> Add Experience
+                </button>
+            </>
+        );
+    };
 
-    const renderEducationSection = () => (
-        <>
-            {(formData.educations || []).map((edu) => (
-                <div key={edu.id} className="repeater-item">
-                    <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('educations', edu.id)}>
-                        <X size={12} />
-                    </button>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">School</label>
-                            <input className="form-input" placeholder="e.g. MIT" value={edu.school || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'school', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Degree</label>
-                            <input className="form-input" placeholder="e.g. B.Sc. Computer Science" value={edu.degree || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'degree', e.target.value)} />
-                        </div>
-                    </div>
-                    <div className="form-row" style={{ marginTop: '0.75rem' }}>
-                        <div className="form-group">
-                            <label className="form-label">City</label>
-                            <input className="form-input" placeholder="e.g. Cambridge, MA" value={edu.city || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'city', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Start Date</label>
-                            <input className="form-input" type="month" value={edu.startDate || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'startDate', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">End Date</label>
-                            <input className="form-input" type="month" value={edu.endDate || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'endDate', e.target.value)} />
-                        </div>
-                    </div>
-                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                        <label className="form-label">Description</label>
-                        <textarea className="form-input" placeholder="Relevant coursework, honors..." value={edu.description || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'description', e.target.value)} />
-                    </div>
-                </div>
-            ))}
-            <button className="repeater-add-btn" onClick={() => addRepeaterItem('educations', { school: '', degree: '', city: '', startDate: '', endDate: '', description: '' })}>
-                <Plus size={14} /> Add Education
-            </button>
-        </>
-    );
+    const renderEducationSection = () => {
+        const items = formData.educations || [];
+        return (
+            <>
+                <Reorder.Group axis="y" values={items} onReorder={(reordered) => reorderRepeaterItems('educations', reordered)} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map((edu) => (
+                        <Reorder.Item key={edu.id} value={edu} className="repeater-item" style={{ position: 'relative', listStyle: 'none' }}>
+                            <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('educations', edu.id)}>
+                                <X size={12} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <button
+                                    className="drag-handle"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder this item"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        padding: '2px 0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        transition: 'color 0.15s'
+                                    }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'; }}
+                                >
+                                    <GripVertical size={16} />
+                                </button>
+                                <div style={{ flex: 1 }}>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">School</label>
+                                            <input className="form-input" placeholder="e.g. MIT" value={edu.school || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'school', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Degree</label>
+                                            <input className="form-input" placeholder="e.g. B.Sc. Computer Science" value={edu.degree || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'degree', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="form-row" style={{ marginTop: '0.75rem' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">City</label>
+                                            <input className="form-input" placeholder="e.g. Cambridge, MA" value={edu.city || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'city', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Start Date</label>
+                                            <input className="form-input" type="month" value={edu.startDate || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'startDate', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">End Date</label>
+                                            <input className="form-input" type="month" value={edu.endDate || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'endDate', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                        <label className="form-label">Description</label>
+                                        <textarea className="form-input" placeholder="Relevant coursework, honors..." value={edu.description || ''} onChange={(e) => updateRepeaterItem('educations', edu.id, 'description', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <button className="repeater-add-btn" onClick={() => addRepeaterItem('educations', { school: '', degree: '', city: '', startDate: '', endDate: '', description: '' })}>
+                    <Plus size={14} /> Add Education
+                </button>
+            </>
+        );
+    };
 
-    const renderProjectsSection = () => (
-        <>
-            {(formData.projects || []).map((proj) => (
-                <div key={proj.id} className="repeater-item">
-                    <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('projects', proj.id)}>
-                        <X size={12} />
-                    </button>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Project Name</label>
-                            <input className="form-input" placeholder="e.g. E-Commerce Platform" value={proj.title || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'title', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Link</label>
-                            <input className="form-input" placeholder="e.g. https://github.com/..." value={proj.link || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'link', e.target.value)} />
-                        </div>
-                    </div>
-                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                        <label className="form-label">Description</label>
-                        <textarea className="form-input" placeholder="What did you build? What technologies?" value={proj.description || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'description', e.target.value)} />
-                    </div>
-                </div>
-            ))}
-            <button className="repeater-add-btn" onClick={() => addRepeaterItem('projects', { title: '', link: '', description: '' })}>
-                <Plus size={14} /> Add Project
-            </button>
-        </>
-    );
+    const renderProjectsSection = () => {
+        const items = formData.projects || [];
+        return (
+            <>
+                <Reorder.Group axis="y" values={items} onReorder={(reordered) => reorderRepeaterItems('projects', reordered)} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map((proj) => (
+                        <Reorder.Item key={proj.id} value={proj} className="repeater-item" style={{ position: 'relative', listStyle: 'none' }}>
+                            <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('projects', proj.id)}>
+                                <X size={12} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <button
+                                    className="drag-handle"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder this item"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        padding: '2px 0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        transition: 'color 0.15s'
+                                    }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'; }}
+                                >
+                                    <GripVertical size={16} />
+                                </button>
+                                <div style={{ flex: 1 }}>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Project Name</label>
+                                            <input className="form-input" placeholder="e.g. E-Commerce Platform" value={proj.title || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'title', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Link</label>
+                                            <input className="form-input" placeholder="e.g. https://github.com/..." value={proj.link || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'link', e.target.value)} />
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                        <label className="form-label">Description</label>
+                                        <textarea className="form-input" placeholder="What did you build? What technologies?" value={proj.description || ''} onChange={(e) => updateRepeaterItem('projects', proj.id, 'description', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <button className="repeater-add-btn" onClick={() => addRepeaterItem('projects', { title: '', link: '', description: '' })}>
+                    <Plus size={14} /> Add Project
+                </button>
+            </>
+        );
+    };
 
     const renderSkillsSection = () => (
         <>
@@ -653,30 +746,58 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         </>
     );
 
-    const renderAchievementsSection = () => (
-        <>
-            {(formData.achievements || []).map((ach) => (
-                <div key={ach.id} className="repeater-item">
-                    <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('achievements', ach.id)}>
-                        <X size={12} />
-                    </button>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Title</label>
-                            <input className="form-input" placeholder="e.g. Employee of the Year" value={ach.title || ''} onChange={(e) => updateRepeaterItem('achievements', ach.id, 'title', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Description</label>
-                            <input className="form-input" placeholder="Brief description..." value={ach.description || ''} onChange={(e) => updateRepeaterItem('achievements', ach.id, 'description', e.target.value)} />
-                        </div>
-                    </div>
-                </div>
-            ))}
-            <button className="repeater-add-btn" onClick={() => addRepeaterItem('achievements', { title: '', description: '' })}>
-                <Plus size={14} /> Add Achievement
-            </button>
-        </>
-    );
+    const renderAchievementsSection = () => {
+        const items = formData.achievements || [];
+        return (
+            <>
+                <Reorder.Group axis="y" values={items} onReorder={(reordered) => reorderRepeaterItems('achievements', reordered)} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map((ach) => (
+                        <Reorder.Item key={ach.id} value={ach} className="repeater-item" style={{ position: 'relative', listStyle: 'none' }}>
+                            <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('achievements', ach.id)}>
+                                <X size={12} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <button
+                                    className="drag-handle"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder this item"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        padding: '2px 0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        transition: 'color 0.15s'
+                                    }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'; }}
+                                >
+                                    <GripVertical size={16} />
+                                </button>
+                                <div style={{ flex: 1 }}>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label className="form-label">Title</label>
+                                            <input className="form-input" placeholder="e.g. Employee of the Year" value={ach.title || ''} onChange={(e) => updateRepeaterItem('achievements', ach.id, 'title', e.target.value)} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Description</label>
+                                            <input className="form-input" placeholder="Brief description..." value={ach.description || ''} onChange={(e) => updateRepeaterItem('achievements', ach.id, 'description', e.target.value)} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <button className="repeater-add-btn" onClick={() => addRepeaterItem('achievements', { title: '', description: '' })}>
+                    <Plus size={14} /> Add Achievement
+                </button>
+            </>
+        );
+    };
 
     return (
         <div>

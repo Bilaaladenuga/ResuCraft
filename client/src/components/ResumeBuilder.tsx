@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -15,8 +15,10 @@ import ResumeManager from './ResumeManager';
 import SpellCheckModal from './SpellCheckModal';
 import TemplateCustomizerModal from './TemplateCustomizerModal';
 import CoverLetterBuilder from './CoverLetterBuilder';
+import TranslateModal from './TranslateModal';
 import Onboarding from './Onboarding';
 import { useToast } from './ToastContext';
+import { useTheme } from './ThemeContext';
 import { getTemplate } from '../templates';
 import { checkApiKey } from '../services/ai';
 import { useUndoRedo } from '../services/undoService';
@@ -79,6 +81,7 @@ const ResumeBuilder = () => {
     const [showSpellCheck, setShowSpellCheck] = useState(false);
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showCoverLetter, setShowCoverLetter] = useState(false);
+    const [showTranslate, setShowTranslate] = useState(false);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -92,6 +95,7 @@ const ResumeBuilder = () => {
 
     const hasApiKey = checkApiKey();
     const toastCtx = useToast();
+    const { theme, toggleTheme } = useTheme();
 
     // Load resume on mount — prefer resume ID from URL, then active resume, then draft
     useEffect(() => {
@@ -506,6 +510,16 @@ const ResumeBuilder = () => {
                                 </span>
                             )}
 
+                            {/* Theme toggle */}
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={toggleTheme}
+                                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                                style={{ padding: '0.35rem', flexShrink: 0, color: 'var(--text-muted)' }}
+                            >
+                                {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                            </button>
+
                             {/* Undo / Redo (ALWAYS VISIBLE) */}
                             <button className="btn btn-ghost btn-sm" onClick={undo} disabled={!canUndo}
                                 title="Undo (Ctrl+Z)"
@@ -563,7 +577,7 @@ const ResumeBuilder = () => {
                                         right: 0,
                                         marginTop: '4px',
                                         minWidth: '200px',
-                                        background: '#111827',
+                                        background: 'var(--bg-dropdown)',
                                         border: '1px solid rgba(245, 158, 11, 0.15)',
                                         borderRadius: 'var(--radius-sm)',
                                         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
@@ -606,12 +620,16 @@ const ResumeBuilder = () => {
                                                             onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <PaintBucket size={13} /> Customize
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
-                                                            <FileText size={13} /> Cover Letter
-                                                        </button>
+                                                        </button>                                                            <button className="btn btn-ghost btn-sm"
+                                                                onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
+                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
+                                                                <FileText size={13} /> Cover Letter
+                                                            </button>
+                                                            <button className="btn btn-ghost btn-sm"
+                                                                onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}
+                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
+                                                                <Globe size={13} /> Translate
+                                                            </button>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
@@ -719,6 +737,16 @@ const ResumeBuilder = () => {
                 isOpen={showCoverLetter}
                 onClose={() => setShowCoverLetter(false)}
                 formData={formData}
+                industry={template.industry}
+                onOpenSettings={() => setShowSettings(true)}
+            />
+
+            {/* Translate Modal */}
+            <TranslateModal
+                isOpen={showTranslate}
+                onClose={() => setShowTranslate(false)}
+                formData={formData}
+                setFormData={setFormData}
                 industry={template.industry}
                 onOpenSettings={() => setShowSettings(true)}
             />

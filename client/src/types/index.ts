@@ -210,6 +210,41 @@ export const FONT_OPTIONS = [
     { value: '"Poppins", sans-serif', label: 'Poppins' },
 ];
 
+export type LanguageCode = 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'nl' | 'ru' | 'ja' | 'zh' | 'ar' | 'ko' | 'hi' | 'tr' | 'pl' | 'sv' | 'da' | 'fi' | 'nb' | 'cs' | 'hu' | 'ro' | 'th' | 'vi' | 'el' | 'he';
+
+export interface Language {
+    code: LanguageCode;
+    label: string;
+    nativeLabel: string;
+    flag: string;
+}
+
+export const LANGUAGES: Language[] = [
+    { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇬🇧' },
+    { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸' },
+    { code: 'fr', label: 'French', nativeLabel: 'Français', flag: '🇫🇷' },
+    { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪' },
+    { code: 'it', label: 'Italian', nativeLabel: 'Italiano', flag: '🇮🇹' },
+    { code: 'pt', label: 'Portuguese', nativeLabel: 'Português', flag: '🇵🇹' },
+    { code: 'nl', label: 'Dutch', nativeLabel: 'Nederlands', flag: '🇳🇱' },
+    { code: 'ru', label: 'Russian', nativeLabel: 'Русский', flag: '🇷🇺' },
+    { code: 'ja', label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵' },
+    { code: 'zh', label: 'Chinese (Simplified)', nativeLabel: '简体中文', flag: '🇨🇳' },
+    { code: 'ar', label: 'Arabic', nativeLabel: 'العربية', flag: '🇸🇦' },
+    { code: 'ko', label: 'Korean', nativeLabel: '한국어', flag: '🇰🇷' },
+    { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳' },
+    { code: 'tr', label: 'Turkish', nativeLabel: 'Türkçe', flag: '🇹🇷' },
+    { code: 'pl', label: 'Polish', nativeLabel: 'Polski', flag: '🇵🇱' },
+    { code: 'sv', label: 'Swedish', nativeLabel: 'Svenska', flag: '🇸🇪' },
+    { code: 'da', label: 'Danish', nativeLabel: 'Dansk', flag: '🇩🇰' },
+    { code: 'fi', label: 'Finnish', nativeLabel: 'Suomi', flag: '🇫🇮' },
+    { code: 'nb', label: 'Norwegian', nativeLabel: 'Norsk', flag: '🇳🇴' },
+    { code: 'cs', label: 'Czech', nativeLabel: 'Čeština', flag: '🇨🇿' },
+    { code: 'hu', label: 'Hungarian', nativeLabel: 'Magyar', flag: '🇭🇺' },
+    { code: 'th', label: 'Thai', nativeLabel: 'ไทย', flag: '🇹🇭' },
+    { code: 'vi', label: 'Vietnamese', nativeLabel: 'Tiếng Việt', flag: '🇻🇳' },
+];
+
 export interface SavedCoverLetter {
     id: string;
     name: string;

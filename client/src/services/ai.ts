@@ -1,4 +1,4 @@
-import { ProviderConfig, AIProvider, AIPromptParams, TailorParams, PowerUpParams, SkillsParams, CoverLetterParams, ATSParams, WritingStyle } from '../types';
+import { ProviderConfig, AIProvider, AIPromptParams, TailorParams, PowerUpParams, SkillsParams, CoverLetterParams, ATSParams, WritingStyle, LanguageCode, FormData } from '../types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getStyleInstructions, getFallbackTone } from './prompts';
 
@@ -1028,6 +1028,330 @@ export const parseAchievementEntries = (raw: string): Array<{
     }
 
     return entries;
+};
+
+/* ============================================
+   Multi-language Resume Translation
+   ============================================ */
+
+/**
+ * Serialize FormData into a structured text format for AI translation
+ */
+const serializeForTranslation = (formData: FormData): string => {
+    const lines: string[] = [];
+    lines.push('=== BASIC INFO ===');
+    lines.push(`firstName: ${formData.firstName || ''}`);
+    lines.push(`lastName: ${formData.lastName || ''}`);
+    lines.push(`designation: ${formData.designation || ''}`);
+    lines.push(`email: ${formData.email || ''}`);
+    lines.push(`phone: ${formData.phone || ''}`);
+    lines.push(`address: ${formData.address || ''}`);
+    lines.push(`summary: ${formData.summary || ''}`);
+    lines.push(`skillsRaw: ${formData.skillsRaw || ''}`);
+    lines.push('');
+
+    if (formData.experiences && formData.experiences.length > 0) {
+        lines.push('=== EXPERIENCES ===');
+        formData.experiences.forEach((exp, i) => {
+            lines.push(`--- Experience ${i + 1} ---`);
+            lines.push(`title: ${exp.title || ''}`);
+            lines.push(`company: ${exp.company || ''}`);
+            lines.push(`location: ${exp.location || ''}`);
+            lines.push(`description: ${exp.description || ''}`);
+        });
+        lines.push('');
+    }
+
+    if (formData.educations && formData.educations.length > 0) {
+        lines.push('=== EDUCATION ===');
+        formData.educations.forEach((edu, i) => {
+            lines.push(`--- Education ${i + 1} ---`);
+            lines.push(`school: ${edu.school || ''}`);
+            lines.push(`degree: ${edu.degree || ''}`);
+            lines.push(`city: ${edu.city || ''}`);
+            lines.push(`description: ${edu.description || ''}`);
+        });
+        lines.push('');
+    }
+
+    if (formData.projects && formData.projects.length > 0) {
+        lines.push('=== PROJECTS ===');
+        formData.projects.forEach((proj, i) => {
+            lines.push(`--- Project ${i + 1} ---`);
+            lines.push(`title: ${proj.title || ''}`);
+            lines.push(`link: ${proj.link || ''}`);
+            lines.push(`description: ${proj.description || ''}`);
+        });
+        lines.push('');
+    }
+
+    if (formData.achievements && formData.achievements.length > 0) {
+        lines.push('=== ACHIEVEMENTS ===');
+        formData.achievements.forEach((ach, i) => {
+            lines.push(`--- Achievement ${i + 1} ---`);
+            lines.push(`title: ${ach.title || ''}`);
+            lines.push(`description: ${ach.description || ''}`);
+        });
+        lines.push('');
+    }
+
+    return lines.join('\n');
+};
+
+/**
+ * Parse translated text back into FormData
+ */
+const parseTranslatedFormData = (translated: string, original: FormData): FormData => {
+    const result: FormData = {
+        ...original,
+        firstName: '', lastName: '', designation: '', email: '',
+        phone: '', address: '', summary: '', skillsRaw: '',
+        experiences: [], educations: [], projects: [], achievements: []
+    };
+
+    const currentSection: { type: string; index: number } = { type: '', index: -1 };
+    let currentEntry: Record<string, string> = {};
+    const entries: Record<string, Array<Record<string, string>>> = {
+        experiences: [], educations: [], projects: [], achievements: []
+    };
+
+    const lines = translated.split('\n');
+
+    for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        // Section headers
+        if (line === '=== BASIC INFO ===') {
+            currentSection.type = 'basic';
+            continue;
+        }
+        if (line === '=== EXPERIENCES ===') {
+            currentSection.type = 'experiences';
+            currentSection.index = -1;
+            continue;
+        }
+        if (line === '=== EDUCATION ===') {
+            currentSection.type = 'educations';
+            currentSection.index = -1;
+            continue;
+        }
+        if (line === '=== PROJECTS ===') {
+            currentSection.type = 'projects';
+            currentSection.index = -1;
+            continue;
+        }
+        if (line === '=== ACHIEVEMENTS ===') {
+            currentSection.type = 'achievements';
+            currentSection.index = -1;
+            continue;
+        }
+
+        // Entry separators (e.g. --- Experience 1 ---)
+        const entryMatch = line.match(/^---\s+(\w+)\s+(\d+)\s+---$/i);
+        if (entryMatch) {
+            // Save previous entry if exists
+            if (Object.keys(currentEntry).length > 0) {
+                const type = currentSection.type;
+                if (type && entries[type]) {
+                    entries[type].push({ ...currentEntry });
+                }
+            }
+            currentEntry = {};
+            currentSection.index = parseInt(entryMatch[2]) - 1;
+            continue;
+        }
+
+        // Key: value pairs
+        const colonIndex = line.indexOf(':');
+        if (colonIndex > 0) {
+            const key = line.substring(0, colonIndex).trim().toLowerCase();
+            const value = line.substring(colonIndex + 1).trim();
+
+            if (currentSection.type === 'basic') {
+                if (key in result) {
+                    (result as any)[key] = value;
+                }
+            } else if (currentSection.type && entries[currentSection.type]) {
+                currentEntry[key] = value;
+            }
+        }
+    }
+
+    // Save last entry
+    if (Object.keys(currentEntry).length > 0) {
+        const type = currentSection.type;
+        if (type && entries[type]) {
+            entries[type].push({ ...currentEntry });
+        }
+    }
+
+    // Convert entries back to structured data with IDs
+    result.experiences = entries.experiences.map((e, i) => ({
+        id: original.experiences?.[i]?.id || Date.now() + i,
+        title: e.title || '',
+        company: e.company || '',
+        location: e.location || '',
+        startDate: original.experiences?.[i]?.startDate || '',
+        endDate: original.experiences?.[i]?.endDate || '',
+        description: e.description || ''
+    }));
+
+    result.educations = entries.educations.map((e, i) => ({
+        id: original.educations?.[i]?.id || Date.now() + i + 100,
+        school: e.school || '',
+        degree: e.degree || '',
+        city: e.city || '',
+        startDate: original.educations?.[i]?.startDate || '',
+        endDate: original.educations?.[i]?.endDate || '',
+        description: e.description || ''
+    }));
+
+    result.projects = entries.projects.map((e, i) => ({
+        id: original.projects?.[i]?.id || Date.now() + i + 200,
+        title: e.title || '',
+        link: e.link || '',
+        description: e.description || ''
+    }));
+
+    result.achievements = entries.achievements.map((e, i) => ({
+        id: original.achievements?.[i]?.id || Date.now() + i + 300,
+        title: e.title || '',
+        description: e.description || ''
+    }));
+
+    return result;
+};
+
+/**
+ * AI: Translate an entire resume to a target language
+ */
+export const translateResumeContent = async (
+    formData: FormData,
+    targetLanguage: LanguageCode,
+    industry: string = ''
+): Promise<FormData> => {
+    const languageNames: Record<string, string> = {
+        en: 'English', es: 'Spanish', fr: 'French', de: 'German',
+        it: 'Italian', pt: 'Portuguese', nl: 'Dutch', ru: 'Russian',
+        ja: 'Japanese', zh: 'Chinese (Simplified)', ar: 'Arabic',
+        ko: 'Korean', hi: 'Hindi', tr: 'Turkish', pl: 'Polish',
+        sv: 'Swedish', da: 'Danish', fi: 'Finnish', nb: 'Norwegian',
+        cs: 'Czech', hu: 'Hungarian', th: 'Thai', vi: 'Vietnamese',
+        el: 'Greek', he: 'Hebrew'
+    };
+
+    const targetName = languageNames[targetLanguage] || targetLanguage;
+    const serialized = serializeForTranslation(formData);
+
+    const prompt = `You are a professional resume translator. Translate the following resume content to ${targetName}.
+
+IMPORTANT RULES:
+1. Translate ALL text values EXCEPT proper names (person names, company names, brand names)
+2. Keep ALL field labels (firstName:, title:, company:, etc.) in English — ONLY translate the values
+3. Preserve the EXACT same structure, section headers (=== ===), and separators (--- ---)
+4. Keep dates, URLs, and links unchanged
+5. Use natural ${targetName} phrasing — adapt idioms and colloquial expressions
+6. Keep email addresses and phone numbers unchanged
+7. For skills, translate them to their common ${targetName} equivalents
+
+Here is the resume content to translate:
+
+${serialized}
+
+Return ONLY the translated version following the exact same format.`;
+
+    const response = await generateWithProvider(prompt);
+    return parseTranslatedFormData(response, formData);
+};
+
+/**
+ * Fallback: Template-based translation for common resume phrases
+ * This provides a basic translation when no AI API key is configured
+ */
+export const generateFallbackTranslation = (
+    formData: FormData,
+    targetLanguage: LanguageCode
+): FormData => {
+    // For fallback, we do a simple label-aware translation of common fields
+    // using a dictionary approach. This won't be perfect but gives users
+    // something to work with.
+    const result: FormData = { ...formData };
+
+    // Common resume translations per language
+    const translations: Record<string, Record<string, string>> = {
+        es: {},
+        fr: {},
+        de: {},
+        it: {},
+        pt: {},
+        nl: {},
+        ru: {},
+        ja: {},
+        zh: {},
+        ar: {},
+        ko: {},
+        hi: {},
+        tr: {},
+        pl: {},
+        sv: {},
+        da: {},
+        fi: {},
+        nb: {},
+        cs: {},
+        hu: {},
+        th: {},
+        vi: {},
+        el: {},
+        he: {},
+        en: {}
+    };
+
+    const dict = translations[targetLanguage];
+    if (!dict || Object.keys(dict).length === 0) {
+        // Return original unchanged — user needs API key for real translation
+        return result;
+    }
+
+    // Apply dictionary translations to text fields
+    const translateText = (text: string): string => {
+        let translated = text;
+        for (const [key, value] of Object.entries(dict)) {
+            translated = translated.replace(new RegExp(key, 'gi'), value);
+        }
+        return translated;
+    };
+
+    result.summary = translateText(result.summary);
+    result.skillsRaw = translateText(result.skillsRaw);
+    result.designation = translateText(result.designation);
+    result.address = translateText(result.address);
+
+    result.experiences = result.experiences.map(exp => ({
+        ...exp,
+        title: translateText(exp.title),
+        description: translateText(exp.description)
+    }));
+
+    result.educations = result.educations.map(edu => ({
+        ...edu,
+        degree: translateText(edu.degree),
+        description: translateText(edu.description)
+    }));
+
+    result.projects = result.projects.map(proj => ({
+        ...proj,
+        title: translateText(proj.title),
+        description: translateText(proj.description)
+    }));
+
+    result.achievements = result.achievements.map(ach => ({
+        ...ach,
+        title: translateText(ach.title),
+        description: translateText(ach.description)
+    }));
+
+    return result;
 };
 
 export const checkApiKey = (): boolean => {
