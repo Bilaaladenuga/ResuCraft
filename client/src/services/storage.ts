@@ -36,8 +36,10 @@ function migrateFromOldPrefix(): void {
     }
 }
 
-// Run migration immediately
-migrateFromOldPrefix();
+// Run migration immediately (client-side only — localStorage is not available during SSR)
+if (typeof localStorage !== 'undefined') {
+    migrateFromOldPrefix();
+}
 
 const DRAFT_KEY = (templateId: string): string => `${STORAGE_PREFIX}draft_${templateId}`;
 const LAST_TEMPLATE_KEY = `${STORAGE_PREFIX}last_template`;
