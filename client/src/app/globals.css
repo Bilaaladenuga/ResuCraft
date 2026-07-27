@@ -3031,6 +3031,56 @@ img {
         padding: 0.6rem 0.75rem;
         font-size: 0.7rem;
     }
+
+    /* ---------- Builder Responsive (768px) ---------- */
+    .builder-content {
+        padding: 1.25rem;
+        gap: 1.25rem;
+    }
+
+    .builder-right {
+        max-width: 650px;
+        margin: 0 auto;
+    }
+
+    #resume-preview {
+        min-height: auto;
+    }
+
+    .form-section {
+        margin-bottom: 0.5rem;
+    }
+
+    .form-section-content {
+        padding: 0.75rem;
+    }
+
+    .form-section-header {
+        padding: 0.65rem 0.75rem;
+    }
+
+    .form-section-title {
+        font-size: 0.8rem;
+    }
+
+    .repeater-item {
+        padding: 0.85rem 0.75rem;
+    }
+
+    .repeater-add-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+
+    .navbar-actions .btn-sm:not(.status-badge) {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    .navbar-actions .btn-sm svg {
+        width: 13px;
+        height: 13px;
+    }
 }
 
 /* ---------- Mobile (480px and below) ---------- */
@@ -3040,7 +3090,7 @@ img {
     }
 
     .navbar-actions {
-        gap: 4px;
+        gap: 3px;
     }
 
     .navbar-actions .btn-sm {
@@ -3526,6 +3576,127 @@ img {
 .repeater-item:hover .drag-handle {
     opacity: 1;
 }
+
+    /* ---------- Builder Mobile (480px) ---------- */
+    .builder-content {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .builder {
+        padding-top: 3.75rem;
+    }
+
+    #resume-preview {
+        min-height: auto;
+        border-radius: var(--radius-md);
+    }
+
+    .navbar-actions .btn-sm {
+        padding: 0.25rem 0.35rem;
+        font-size: 0.6rem;
+        gap: 3px;
+    }
+
+    .navbar-actions .btn-sm svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .navbar-actions .btn-accent.btn-sm,
+    .navbar-actions .btn-secondary.btn-sm {
+        padding: 0.25rem 0.35rem;
+        font-size: 0.55rem;
+    }
+
+    .status-badge {
+        display: none;
+    }
+
+    .form-section {
+        margin-bottom: 0.4rem;
+    }
+
+    .form-section-content {
+        padding: 0.6rem;
+        gap: 0.6rem;
+    }
+
+    .form-section-header {
+        padding: 0.5rem 0.6rem;
+    }
+
+    .form-section-title {
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+
+    .form-section-title svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .form-input {
+        padding: 0.5rem 0.65rem;
+        font-size: 0.8rem;
+    }
+
+    .form-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.3px;
+    }
+
+    .repeater-item {
+        padding: 0.7rem 0.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .repeater-remove-btn {
+        width: 20px;
+        height: 20px;
+        top: 4px;
+        right: 4px;
+    }
+
+    .repeater-add-btn {
+        font-size: 0.7rem;
+        padding: 0.4rem;
+    }
+
+    .drag-handle svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .modal-card {
+        margin: 0 0.5rem;
+        padding: 1rem;
+        max-width: 100%;
+        border-radius: var(--radius-md);
+    }
+
+    .modal-card h2 {
+        font-size: 0.9rem;
+    }
+
+    .modal-card p {
+        font-size: 0.75rem;
+    }
+
+    .modal-overlay {
+        padding: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .modal-overlay .modal-card {
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .preview-container {
+        min-height: auto;
+    }
 
 /* ---------- Touch-friendly improvements ---------- */
 @media (hover: none) and (pointer: coarse) {
