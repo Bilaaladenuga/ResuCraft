@@ -1,5 +1,6 @@
 import React from 'react';
 import { FormData } from '../types';
+import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -7,38 +8,29 @@ const formatDate = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-const GeneralTemplate = ({ data }: { data: FormData }) => {
+interface Props {
+    data: FormData;
+    roleId?: string;
+}
+
+const GeneralTemplate = ({ data, roleId }: Props) => {
     const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Your Name';
     const skills = (data.skillsRaw || '').split(',').map(s => s.trim()).filter(Boolean);
+    const sectionOrder = getSectionOrder('general', roleId);
 
-    return (
-        <div className="preview-container template-general">
-            <div className="general-header">
-                <div className="general-header-top">
-                    {data.image && <img src={data.image} alt="Profile" className="general-avatar" />}
-                    <div>
-                        <h1 className="general-name">{fullName}</h1>
-                        <p className="general-designation">{data.designation || 'Professional Title'}</p>
-                    </div>
-                </div>
-                <div className="general-contact">
-                    {data.email && <span>{data.email}</span>}
-                    {data.phone && <span>{data.phone}</span>}
-                    {data.address && <span>{data.address}</span>}
-                </div>
-            </div>
-
-            <div className="general-body">
-                {data.summary && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Professional Summary</h2>
+    const renderSection = (config: SectionConfig): React.ReactNode => {
+        switch (config.id) {
+            case 'summary':
+                return data.summary ? (
+                    <div className="general-section" key="summary">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         <p className="general-text">{data.summary}</p>
                     </div>
-                )}
-
-                {data.experiences?.length > 0 && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Work Experience</h2>
+                ) : null;
+            case 'experience':
+                return data.experiences?.length > 0 ? (
+                    <div className="general-section" key="experience">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         {data.experiences.map((exp) => (
                             <div key={exp.id} className="general-entry">
                                 <div className="general-entry-header">
@@ -58,11 +50,11 @@ const GeneralTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {data.educations?.length > 0 && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Education</h2>
+                ) : null;
+            case 'education':
+                return data.educations?.length > 0 ? (
+                    <div className="general-section" key="education">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         {data.educations.map((edu) => (
                             <div key={edu.id} className="general-entry">
                                 <div className="general-entry-header">
@@ -76,18 +68,18 @@ const GeneralTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {skills.length > 0 && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Skills</h2>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <div className="general-section" key="skills">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         <p className="general-text">{skills.join(' · ')}</p>
                     </div>
-                )}
-
-                {data.projects?.length > 0 && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Projects</h2>
+                ) : null;
+            case 'projects':
+                return data.projects?.length > 0 ? (
+                    <div className="general-section" key="projects">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         {data.projects.map((proj) => (
                             <div key={proj.id} className="general-entry">
                                 <strong>{proj.title}</strong>
@@ -95,11 +87,11 @@ const GeneralTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {data.achievements?.length > 0 && (
-                    <div className="general-section">
-                        <h2 className="general-section-title">Achievements</h2>
+                ) : null;
+            case 'achievements':
+                return data.achievements?.length > 0 ? (
+                    <div className="general-section" key="achievements">
+                        <h2 className="general-section-title">{config.heading}</h2>
                         {data.achievements.map((ach) => (
                             <div key={ach.id} className="general-entry">
                                 <strong>{ach.title}</strong>
@@ -107,7 +99,29 @@ const GeneralTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
+                ) : null;
+        }
+    };
+
+    return (
+        <div className="preview-container template-general">
+            <div className="general-header">
+                <div className="general-header-top">
+                    {data.image && <img src={data.image} alt="Profile" className="general-avatar" />}
+                    <div>
+                        <h1 className="general-name">{fullName}</h1>
+                        <p className="general-designation">{data.designation || 'Professional Title'}</p>
+                    </div>
+                </div>
+                <div className="general-contact">
+                    {data.email && <span>{data.email}</span>}
+                    {data.phone && <span>{data.phone}</span>}
+                    {data.address && <span>{data.address}</span>}
+                </div>
+            </div>
+
+            <div className="general-body">
+                {sectionOrder.map(cfg => renderSection(cfg))}
             </div>
         </div>
     );

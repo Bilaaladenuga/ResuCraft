@@ -35,6 +35,7 @@ export interface FormData {
     firstName: string;
     lastName: string;
     designation: string;
+    roleId?: string;
     email: string;
     phone: string;
     address: string;
@@ -50,7 +51,7 @@ export interface FormData {
 export interface TemplateConfig {
     id: string;
     name: string;
-    component: React.ComponentType<{ data: FormData }>;
+    component: React.ComponentType<{ data: FormData; roleId?: string }>;
     industry: string;
 }
 

@@ -82,16 +82,13 @@ declare module 'lucide-react' {
     export const GripVertical: Icon;
     export const Sun: Icon;
     export const Moon: Icon;
-    export const BookmarkPlus: Icon;
-    export const Briefcase: Icon;
-    export const Clock: Icon;
-    export const Building: Icon;
     export const Info: Icon;
     export const Shield: Icon;
     export const Hash: Icon;
     export const List: Icon;
     export const Columns: Icon;
+    export const Star: Icon;
+    export const ChevronLeft: Icon;
+    export const Quote: Icon;
+    export const Users: Icon;
 }
-
-
-

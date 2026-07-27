@@ -1,5 +1,6 @@
 import React from 'react';
 import { FormData } from '../types';
+import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -7,9 +8,81 @@ const formatDate = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-const HealthcareTemplate = ({ data }: { data: FormData }) => {
+interface Props {
+    data: FormData;
+    roleId?: string;
+}
+
+const HealthcareTemplate = ({ data, roleId }: Props) => {
     const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Your Name';
     const skills = (data.skillsRaw || '').split(',').map(s => s.trim()).filter(Boolean);
+    const sectionOrder = getSectionOrder('healthcare', roleId);
+    // Filter out skills & achievements since they're already in the sidebar
+    const mainSectionOrder = sectionOrder.filter(
+        s => s.id !== 'skills' && s.id !== 'achievements'
+    );
+
+    const renderSection = (config: SectionConfig): React.ReactNode => {
+        switch (config.id) {
+            case 'summary':
+                return data.summary ? (
+                    <div className="hc-section" key="summary">
+                        <h2 className="hc-section-title">{config.heading}</h2>
+                        <p className="hc-text">{data.summary}</p>
+                    </div>
+                ) : null;
+            case 'experience':
+                return data.experiences?.length > 0 ? (
+                    <div className="hc-section" key="experience">
+                        <h2 className="hc-section-title">{config.heading}</h2>
+                        {data.experiences.map((exp) => (
+                            <div key={exp.id} className="hc-entry">
+                                <div className="hc-entry-header">
+                                    <strong>{exp.title}</strong>
+                                    <span className="hc-date">{formatDate(exp.startDate)} — {formatDate(exp.endDate)}</span>
+                                </div>
+                                <p className="hc-company">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                                {exp.description && (
+                                    <ul className="hc-bullets">
+                                        {exp.description.split('\n').filter(Boolean).map((line, i) => (
+                                            <li key={i}>{line}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'education':
+                return data.educations?.length > 0 ? (
+                    <div className="hc-section" key="education">
+                        <h2 className="hc-section-title">{config.heading}</h2>
+                        {data.educations.map((edu) => (
+                            <div key={edu.id} className="hc-entry">
+                                <div className="hc-entry-header">
+                                    <strong>{edu.degree}</strong>
+                                    <span className="hc-date">{formatDate(edu.startDate)} — {formatDate(edu.endDate)}</span>
+                                </div>
+                                <p className="hc-company">{edu.school}{edu.city ? ` · ${edu.city}` : ''}</p>
+                                {edu.description && <p className="hc-text">{edu.description}</p>}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'projects':
+                return data.projects?.length > 0 ? (
+                    <div className="hc-section" key="projects">
+                        <h2 className="hc-section-title">{config.heading}</h2>
+                        {data.projects.map((proj) => (
+                            <div key={proj.id} className="hc-entry">
+                                <strong>{proj.title}</strong>
+                                {proj.description && <p className="hc-text">{proj.description}</p>}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+        }
+    };
 
     return (
         <div className="preview-container template-healthcare">
@@ -51,62 +124,7 @@ const HealthcareTemplate = ({ data }: { data: FormData }) => {
                 </div>
 
                 <div className="hc-main">
-                    {data.summary && (
-                        <div className="hc-section">
-                            <h2 className="hc-section-title">Professional Summary</h2>
-                            <p className="hc-text">{data.summary}</p>
-                        </div>
-                    )}
-
-                    {data.experiences?.length > 0 && (
-                        <div className="hc-section">
-                            <h2 className="hc-section-title">Clinical Experience</h2>
-                            {data.experiences.map((exp) => (
-                                <div key={exp.id} className="hc-entry">
-                                    <div className="hc-entry-header">
-                                        <strong>{exp.title}</strong>
-                                        <span className="hc-date">{formatDate(exp.startDate)} — {formatDate(exp.endDate)}</span>
-                                    </div>
-                                    <p className="hc-company">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
-                                    {exp.description && (
-                                        <ul className="hc-bullets">
-                                            {exp.description.split('\n').filter(Boolean).map((line, i) => (
-                                                <li key={i}>{line}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {data.educations?.length > 0 && (
-                        <div className="hc-section">
-                            <h2 className="hc-section-title">Education</h2>
-                            {data.educations.map((edu) => (
-                                <div key={edu.id} className="hc-entry">
-                                    <div className="hc-entry-header">
-                                        <strong>{edu.degree}</strong>
-                                        <span className="hc-date">{formatDate(edu.startDate)} — {formatDate(edu.endDate)}</span>
-                                    </div>
-                                    <p className="hc-company">{edu.school}{edu.city ? ` · ${edu.city}` : ''}</p>
-                                    {edu.description && <p className="hc-text">{edu.description}</p>}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {data.projects?.length > 0 && (
-                        <div className="hc-section">
-                            <h2 className="hc-section-title">Research & Projects</h2>
-                            {data.projects.map((proj) => (
-                                <div key={proj.id} className="hc-entry">
-                                    <strong>{proj.title}</strong>
-                                    {proj.description && <p className="hc-text">{proj.description}</p>}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    {mainSectionOrder.map(cfg => renderSection(cfg))}
                 </div>
             </div>
         </div>

@@ -413,10 +413,11 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     };
 
     const handleSelectRole = useCallback((role: RoleConfig) => {
-        // Set the designation and pre-fill skills
+        // Set the designation, roleId, and pre-fill skills
         setFormData(prev => ({
             ...prev,
             designation: role.title,
+            roleId: role.id,
             skillsRaw: prev.skillsRaw?.trim()
                 ? prev.skillsRaw  // Don't overwrite if user already added skills
                 : role.skills.join(', ')
@@ -452,6 +453,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
             setFormData(prev => ({
                 ...prev,
                 designation: role.title,
+                roleId: role.id,
                 skillsRaw: skillsText,
                 summary: summaryText,
                 experiences: expEntries,

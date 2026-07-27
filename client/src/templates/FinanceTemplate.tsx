@@ -1,5 +1,6 @@
 import React from 'react';
 import { FormData } from '../types';
+import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -7,36 +8,29 @@ const formatDate = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-const FinanceTemplate = ({ data }: { data: FormData }) => {
+interface Props {
+    data: FormData;
+    roleId?: string;
+}
+
+const FinanceTemplate = ({ data, roleId }: Props) => {
     const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Your Name';
     const skills = (data.skillsRaw || '').split(',').map(s => s.trim()).filter(Boolean);
+    const sectionOrder = getSectionOrder('finance', roleId);
 
-    return (
-        <div className="preview-container template-finance">
-            <div className="finance-header">
-                {data.image && <img src={data.image} alt="Profile" className="finance-avatar" />}
-                <div>
-                    <h1 className="finance-name">{fullName}</h1>
-                    <p className="finance-designation">{data.designation || 'Professional Title'}</p>
-                </div>
-            </div>
-            <div className="finance-contact-bar">
-                {data.email && <span>{data.email}</span>}
-                {data.phone && <span>{data.phone}</span>}
-                {data.address && <span>{data.address}</span>}
-            </div>
-
-            <div className="finance-body">
-                {data.summary && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Professional Summary</h2>
+    const renderSection = (config: SectionConfig): React.ReactNode => {
+        switch (config.id) {
+            case 'summary':
+                return data.summary ? (
+                    <div className="finance-section" key="summary">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         <p className="finance-text">{data.summary}</p>
                     </div>
-                )}
-
-                {data.experiences?.length > 0 && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Professional Experience</h2>
+                ) : null;
+            case 'experience':
+                return data.experiences?.length > 0 ? (
+                    <div className="finance-section" key="experience">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         {data.experiences.map((exp) => (
                             <div key={exp.id} className="finance-entry">
                                 <div className="finance-entry-header">
@@ -56,11 +50,11 @@ const FinanceTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {data.educations?.length > 0 && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Education</h2>
+                ) : null;
+            case 'education':
+                return data.educations?.length > 0 ? (
+                    <div className="finance-section" key="education">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         {data.educations.map((edu) => (
                             <div key={edu.id} className="finance-entry">
                                 <div className="finance-entry-header">
@@ -74,18 +68,18 @@ const FinanceTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {skills.length > 0 && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Core Competencies</h2>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <div className="finance-section" key="skills">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         <p className="finance-text">{skills.join(' • ')}</p>
                     </div>
-                )}
-
-                {data.achievements?.length > 0 && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Awards & Certifications</h2>
+                ) : null;
+            case 'achievements':
+                return data.achievements?.length > 0 ? (
+                    <div className="finance-section" key="achievements">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         {data.achievements.map((ach) => (
                             <div key={ach.id} className="finance-entry">
                                 <strong>{ach.title}</strong>
@@ -93,11 +87,11 @@ const FinanceTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {data.projects?.length > 0 && (
-                    <div className="finance-section">
-                        <h2 className="finance-section-title">Key Projects</h2>
+                ) : null;
+            case 'projects':
+                return data.projects?.length > 0 ? (
+                    <div className="finance-section" key="projects">
+                        <h2 className="finance-section-title">{config.heading}</h2>
                         {data.projects.map((proj) => (
                             <div key={proj.id} className="finance-entry">
                                 <strong>{proj.title}</strong>
@@ -105,7 +99,27 @@ const FinanceTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
+                ) : null;
+        }
+    };
+
+    return (
+        <div className="preview-container template-finance">
+            <div className="finance-header">
+                {data.image && <img src={data.image} alt="Profile" className="finance-avatar" />}
+                <div>
+                    <h1 className="finance-name">{fullName}</h1>
+                    <p className="finance-designation">{data.designation || 'Professional Title'}</p>
+                </div>
+            </div>
+            <div className="finance-contact-bar">
+                {data.email && <span>{data.email}</span>}
+                {data.phone && <span>{data.phone}</span>}
+                {data.address && <span>{data.address}</span>}
+            </div>
+
+            <div className="finance-body">
+                {sectionOrder.map(cfg => renderSection(cfg))}
             </div>
         </div>
     );

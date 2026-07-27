@@ -5,10 +5,16 @@ import { motion } from 'framer-motion';
 import {
     Sparkles, Zap, FileText, ArrowRight, Layout, Cpu,
     CheckCircle, Search, BarChart, ShieldCheck, Globe,
-    ChevronRight, Award, Files, Sun, Moon
+    ChevronRight, Award, Files, Sun, Moon, Users, Eye
 } from 'lucide-react';
 import ResumeManager from './ResumeManager';
 import { useTheme } from './ThemeContext';
+import StatsCounter from './landing/StatsCounter';
+import Testimonials from './landing/Testimonials';
+import FAQ from './landing/FAQ';
+import TemplatePreviewCarousel from './landing/TemplatePreviewCarousel';
+import BeforeAfterSlider from './landing/BeforeAfterSlider';
+import ComparisonTable from './landing/ComparisonTable';
 
 const LandingPage = () => {
     const router = useRouter();
@@ -374,7 +380,7 @@ const LandingPage = () => {
                         <p className="section-text text-xl">
                             Getting that dream job can seem like an impossible task. We are here to change that.
                             Give yourself a real advantage with the best online resume maker:
-                            <strong> created by experts, improved by data, trusted by millions</strong> of professionals.
+                            <strong> created by experts, improved by data, trusted by professionals</strong> worldwide.
                         </p>
                         <ul className="value-list-grid">
                             <li><CheckCircle size={18} color="var(--secondary)" /> <span>Recruiter-tested templates</span></li>
@@ -385,6 +391,23 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Stats Counter */}
+            <StatsCounter stats={[
+                { value: 10000, label: 'Resumes Crafted', icon: <FileText size={22} /> },
+                { value: 7, suffix: '', label: 'Industry Templates', icon: <Layout size={22} /> },
+                { value: 92, suffix: '%', label: 'ATS Pass Rate', icon: <Eye size={22} /> },
+                { value: 5000, label: 'Active Users', icon: <Users size={22} /> },
+            ]} />
+
+            {/* Template Preview Carousel */}
+            <TemplatePreviewCarousel />
+
+            {/* Before / After Slider */}
+            <BeforeAfterSlider />
+
+            {/* Comparison Table */}
+            <ComparisonTable />
 
             {/* Authentic Showcase Section */}
             <section className="section section-showcase">
@@ -409,7 +432,7 @@ const LandingPage = () => {
                             viewport={{ once: true }}
                             transition={{ delay: 0.15 }}
                         >
-                            <img src="/assets/template-screenshot.png" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
+                            <img src="/assets/templates-screenshot.png" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
                             <div className="showcase-caption">Career-Focused Templates</div>
                         </motion.div>
                         <motion.div
@@ -425,6 +448,53 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Testimonials */}
+            <Testimonials testimonials={[
+                {
+                    name: 'Sarah L.',
+                    role: 'Product Manager at FinTech Co.',
+                    quote: 'I built my resume in 10 minutes and got an interview request the following week. The AI-powered bullet points made my experience sound so much more impactful.'
+                },
+                {
+                    name: 'Marcus J.',
+                    role: 'Software Engineer',
+                    quote: "ResuCraft's ATS optimization is a game-changer. My callback rate went from 1 in 20 to nearly 1 in 4 after restructuring my resume with their templates."
+                },
+                {
+                    name: 'Priya K.',
+                    role: 'Healthcare Administrator',
+                    quote: "The role selector is brilliant — it pre-filled skills I didn't even think to include. I submitted 5 applications and heard back from 3 within a week."
+                },
+            ]} />
+
+            {/* FAQ */}
+            <FAQ items={[
+                {
+                    q: 'Is my data private and secure?',
+                    a: "Absolutely. All your resume data is stored locally in your browser. Nothing is ever sent to our servers unless you explicitly use AI features, and even then, you can configure your own API key so you're in complete control."
+                },
+                {
+                    q: 'Do I need an API key to use the AI features?',
+                    a: 'The app works fully without AI — you can fill in everything manually. For AI-powered features like summary generation, bullet power-ups, and skills enhancement, you can bring your own free API key from Google AI Studio (Gemini). It takes 30 seconds to set up.'
+                },
+                {
+                    q: 'Can I export my resume to Word format too?',
+                    a: 'Yes! ResuCraft supports both PDF and DOCX (Word) export. Your resume is formatted to look professional in both formats, so you can submit it wherever you need.'
+                },
+                {
+                    q: 'Is my resume ATS-friendly?',
+                    a: 'Every template is built with ATS (Applicant Tracking System) best practices in mind. We also include an ATS Checklist tool that scans your resume against 12 criteria and gives you actionable tips to improve your score.'
+                },
+                {
+                    q: "Can I use ResuCraft for free?",
+                    a: "Yes, ResuCraft is completely free to use. There are no hidden charges or subscription fees. You can create, edit, and export as many resumes as you like. If you want AI features, you just need to bring your own API key."
+                },
+                {
+                    q: 'What industries are the templates designed for?',
+                    a: 'We offer 7 professionally designed templates: Tech/IT, Finance, Healthcare, Creative/Design, Legal/Consulting, Education, and General. Each template is tailored with industry-specific layouts, headings, and styling.'
+                },
+            ]} />
 
             {/* Footer */}
             <footer className="footer">

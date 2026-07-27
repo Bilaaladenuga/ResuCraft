@@ -156,6 +156,7 @@ function generateCustomCSS(templateId: string, custom: TemplateCustomization): s
 const ResumePreview = ({ formData, templateId, customization }: ResumePreviewProps) => {
     const template = getTemplate(templateId);
     const TemplateComponent = template.component;
+    const roleId = formData.roleId || undefined;
 
     const customCSS = useMemo(() => {
         if (!customization) return '';
@@ -180,7 +181,7 @@ const ResumePreview = ({ formData, templateId, customization }: ResumePreviewPro
             } as React.CSSProperties : undefined}
         >
             {customCSS && <style>{customCSS}</style>}
-            <TemplateComponent data={formData} />
+            <TemplateComponent data={formData} roleId={roleId} />
         </div>
     );
 };

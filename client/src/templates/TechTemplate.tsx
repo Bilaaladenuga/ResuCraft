@@ -1,5 +1,6 @@
 import React from 'react';
 import { FormData } from '../types';
+import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -7,9 +8,103 @@ const formatDate = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-const TechTemplate = ({ data }: { data: FormData }) => {
+interface Props {
+    data: FormData;
+    roleId?: string;
+}
+
+const TechTemplate = ({ data, roleId }: Props) => {
     const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Your Name';
     const skills = (data.skillsRaw || '').split(',').map(s => s.trim()).filter(Boolean);
+    const sectionOrder = getSectionOrder('tech', roleId);
+
+    const renderSection = (config: SectionConfig): React.ReactNode => {
+        switch (config.id) {
+            case 'skills':
+                return skills.length > 0 ? (
+                    <div className="tech-section" key="skills">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        <div className="tech-skills-grid">
+                            {skills.map((skill, i) => (
+                                <span key={i} className="tech-skill-badge">{skill}</span>
+                            ))}
+                        </div>
+                    </div>
+                ) : null;
+            case 'summary':
+                return data.summary ? (
+                    <div className="tech-section" key="summary">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        <p className="tech-text">{data.summary}</p>
+                    </div>
+                ) : null;
+            case 'projects':
+                return data.projects?.length > 0 ? (
+                    <div className="tech-section" key="projects">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        {data.projects.map((proj) => (
+                            <div key={proj.id} className="tech-entry">
+                                <div className="tech-entry-header">
+                                    <strong>{proj.title}</strong>
+                                    {proj.link && <a href={proj.link} className="tech-link">{proj.link}</a>}
+                                </div>
+                                {proj.description && <p className="tech-text">{proj.description}</p>}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'experience':
+                return data.experiences?.length > 0 ? (
+                    <div className="tech-section" key="experience">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        {data.experiences.map((exp) => (
+                            <div key={exp.id} className="tech-entry">
+                                <div className="tech-entry-header">
+                                    <strong>{exp.title}</strong>
+                                    <span className="tech-date">{formatDate(exp.startDate)} — {formatDate(exp.endDate)}</span>
+                                </div>
+                                <p className="tech-company">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                                {exp.description && (
+                                    <ul className="tech-bullets">
+                                        {exp.description.split('\n').filter(Boolean).map((line, i) => (
+                                            <li key={i}>{line}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'education':
+                return data.educations?.length > 0 ? (
+                    <div className="tech-section" key="education">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        {data.educations.map((edu) => (
+                            <div key={edu.id} className="tech-entry">
+                                <div className="tech-entry-header">
+                                    <strong>{edu.degree}</strong>
+                                    <span className="tech-date">{formatDate(edu.startDate)} — {formatDate(edu.endDate)}</span>
+                                </div>
+                                <p className="tech-company">{edu.school}{edu.city ? ` · ${edu.city}` : ''}</p>
+                                {edu.description && <p className="tech-text">{edu.description}</p>}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+            case 'achievements':
+                return data.achievements?.length > 0 ? (
+                    <div className="tech-section" key="achievements">
+                        <h2 className="tech-section-title">{config.heading}</h2>
+                        {data.achievements.map((ach) => (
+                            <div key={ach.id} className="tech-entry">
+                                <strong>{ach.title}</strong>
+                                {ach.description && <p className="tech-text">{ach.description}</p>}
+                            </div>
+                        ))}
+                    </div>
+                ) : null;
+        }
+    };
 
     return (
         <div className="preview-container template-tech">
@@ -29,88 +124,7 @@ const TechTemplate = ({ data }: { data: FormData }) => {
             </div>
 
             <div className="tech-body">
-                {skills.length > 0 && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Technical Skills</h2>
-                        <div className="tech-skills-grid">
-                            {skills.map((skill, i) => (
-                                <span key={i} className="tech-skill-badge">{skill}</span>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {data.summary && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Summary</h2>
-                        <p className="tech-text">{data.summary}</p>
-                    </div>
-                )}
-
-                {data.projects?.length > 0 && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Projects</h2>
-                        {data.projects.map((proj) => (
-                            <div key={proj.id} className="tech-entry">
-                                <div className="tech-entry-header">
-                                    <strong>{proj.title}</strong>
-                                    {proj.link && <a href={proj.link} className="tech-link">{proj.link}</a>}
-                                </div>
-                                {proj.description && <p className="tech-text">{proj.description}</p>}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {data.experiences?.length > 0 && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Experience</h2>
-                        {data.experiences.map((exp) => (
-                            <div key={exp.id} className="tech-entry">
-                                <div className="tech-entry-header">
-                                    <strong>{exp.title}</strong>
-                                    <span className="tech-date">{formatDate(exp.startDate)} — {formatDate(exp.endDate)}</span>
-                                </div>
-                                <p className="tech-company">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
-                                {exp.description && (
-                                    <ul className="tech-bullets">
-                                        {exp.description.split('\n').filter(Boolean).map((line, i) => (
-                                            <li key={i}>{line}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {data.educations?.length > 0 && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Education</h2>
-                        {data.educations.map((edu) => (
-                            <div key={edu.id} className="tech-entry">
-                                <div className="tech-entry-header">
-                                    <strong>{edu.degree}</strong>
-                                    <span className="tech-date">{formatDate(edu.startDate)} — {formatDate(edu.endDate)}</span>
-                                </div>
-                                <p className="tech-company">{edu.school}{edu.city ? ` · ${edu.city}` : ''}</p>
-                                {edu.description && <p className="tech-text">{edu.description}</p>}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {data.achievements?.length > 0 && (
-                    <div className="tech-section">
-                        <h2 className="tech-section-title">Achievements</h2>
-                        {data.achievements.map((ach) => (
-                            <div key={ach.id} className="tech-entry">
-                                <strong>{ach.title}</strong>
-                                {ach.description && <p className="tech-text">{ach.description}</p>}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {sectionOrder.map(cfg => renderSection(cfg))}
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FormData } from '../types';
+import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -7,38 +8,29 @@ const formatDate = (dateStr: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-const LegalTemplate = ({ data }: { data: FormData }) => {
+interface Props {
+    data: FormData;
+    roleId?: string;
+}
+
+const LegalTemplate = ({ data, roleId }: Props) => {
     const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Your Name';
     const skills = (data.skillsRaw || '').split(',').map(s => s.trim()).filter(Boolean);
+    const sectionOrder = getSectionOrder('legal', roleId);
 
-    return (
-        <div className="preview-container template-legal">
-            {/* Header with classic law firm feel */}
-            <div className="legal-header">
-                {data.image && <img src={data.image} alt="Profile" className="legal-avatar" />}
-                <h1 className="legal-name">{fullName}</h1>
-                <p className="legal-designation">{data.designation || 'Legal Professional'}</p>
-                <div className="legal-contact">
-                    {data.email && <span>{data.email}</span>}
-                    {data.phone && <span>{data.phone}</span>}
-                    {data.address && <span>{data.address}</span>}
-                </div>
-                <div className="legal-header-bar"></div>
-            </div>
-
-            <div className="legal-body">
-                {/* Summary */}
-                {data.summary && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Professional Summary</h2>
+    const renderSection = (config: SectionConfig): React.ReactNode => {
+        switch (config.id) {
+            case 'summary':
+                return data.summary ? (
+                    <div className="legal-section" key="summary">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         <p className="legal-text">{data.summary}</p>
                     </div>
-                )}
-
-                {/* Experience (emphasized for legal) */}
-                {data.experiences?.length > 0 && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Professional Experience</h2>
+                ) : null;
+            case 'experience':
+                return data.experiences?.length > 0 ? (
+                    <div className="legal-section" key="experience">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         {data.experiences.map((exp) => (
                             <div key={exp.id} className="legal-entry">
                                 <div className="legal-entry-header">
@@ -58,12 +50,11 @@ const LegalTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {/* Education (prominent for legal) */}
-                {data.educations?.length > 0 && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Education</h2>
+                ) : null;
+            case 'education':
+                return data.educations?.length > 0 ? (
+                    <div className="legal-section" key="education">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         {data.educations.map((edu) => (
                             <div key={edu.id} className="legal-entry">
                                 <div className="legal-entry-header">
@@ -75,24 +66,22 @@ const LegalTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {/* Skills as core competencies */}
-                {skills.length > 0 && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Areas of Expertise</h2>
+                ) : null;
+            case 'skills':
+                return skills.length > 0 ? (
+                    <div className="legal-section" key="skills">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         <div className="legal-skills-grid">
                             {skills.map((skill, i) => (
                                 <span key={i} className="legal-skill-item">{skill}</span>
                             ))}
                         </div>
                     </div>
-                )}
-
-                {/* Achievements (bar admissions, certifications) */}
-                {data.achievements?.length > 0 && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Bar Admissions & Certifications</h2>
+                ) : null;
+            case 'achievements':
+                return data.achievements?.length > 0 ? (
+                    <div className="legal-section" key="achievements">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         {data.achievements.map((ach) => (
                             <div key={ach.id} className="legal-entry">
                                 <strong>{ach.title}</strong>
@@ -100,12 +89,11 @@ const LegalTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
-
-                {/* Projects (publications, cases) */}
-                {data.projects?.length > 0 && (
-                    <div className="legal-section">
-                        <h2 className="legal-section-title">Publications & Key Matters</h2>
+                ) : null;
+            case 'projects':
+                return data.projects?.length > 0 ? (
+                    <div className="legal-section" key="projects">
+                        <h2 className="legal-section-title">{config.heading}</h2>
                         {data.projects.map((proj) => (
                             <div key={proj.id} className="legal-entry">
                                 <strong>{proj.title}</strong>
@@ -113,7 +101,27 @@ const LegalTemplate = ({ data }: { data: FormData }) => {
                             </div>
                         ))}
                     </div>
-                )}
+                ) : null;
+        }
+    };
+
+    return (
+        <div className="preview-container template-legal">
+            {/* Header with classic law firm feel */}
+            <div className="legal-header">
+                {data.image && <img src={data.image} alt="Profile" className="legal-avatar" />}
+                <h1 className="legal-name">{fullName}</h1>
+                <p className="legal-designation">{data.designation || 'Legal Professional'}</p>
+                <div className="legal-contact">
+                    {data.email && <span>{data.email}</span>}
+                    {data.phone && <span>{data.phone}</span>}
+                    {data.address && <span>{data.address}</span>}
+                </div>
+                <div className="legal-header-bar"></div>
+            </div>
+
+            <div className="legal-body">
+                {sectionOrder.map(cfg => renderSection(cfg))}
             </div>
         </div>
     );
