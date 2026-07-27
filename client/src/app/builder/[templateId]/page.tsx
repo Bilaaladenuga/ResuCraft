@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import ResumeBuilder from '../../../components/ResumeBuilder';
 
+const SITE_URL = 'https://resu-craft-smoky.vercel.app';
+
 interface BuilderPageParams {
     params: Promise<{ templateId: string }>;
 }
@@ -38,6 +40,10 @@ export async function generateMetadata({ params }: BuilderPageParams): Promise<M
         openGraph: {
             title: `${name} Resume Builder | ResuCraft`,
             description: `Build a professional ${name} resume with AI-powered tools. ${description}`,
+            url: `${SITE_URL}/builder/${resolvedParams.templateId}`,
+            siteName: 'ResuCraft',
+            locale: 'en_US',
+            type: 'website',
         },
     };
 }
