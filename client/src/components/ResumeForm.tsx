@@ -95,8 +95,11 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     const [writeError, setWriteError] = useState('');
     const [quickFillLoading, setQuickFillLoading] = useState(false);
     const [hasApiKey, setHasApiKey] = useState(false);
-    useEffect(() => { setHasApiKey(checkApiKey()); }, []);
-    const writingStyle: WritingStyle = getSavedStyle();
+    const [writingStyle, setWritingStyle] = useState<WritingStyle>('professional');
+    useEffect(() => {
+        setHasApiKey(checkApiKey());
+        setWritingStyle(getSavedStyle());
+    }, []);
 
     const generateForSection = useCallback(async (sectionId: string) => {
         setWriteLoading(sectionId);

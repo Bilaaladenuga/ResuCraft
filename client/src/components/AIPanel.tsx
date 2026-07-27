@@ -46,12 +46,13 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
     const [showJDRepo, setShowJDRepo] = useState(false);
     const [jdSaved, setJdSaved] = useState(false);
 
-    const [writingStyle, setWritingStyle] = useState<WritingStyle>(getSavedStyle());
+    const [writingStyle, setWritingStyle] = useState<WritingStyle>('professional');
     const [hasApiKey, setHasApiKey] = useState(false);
     const [providerLabel, setProviderLabel] = useState('Gemini');
     useEffect(() => {
         setHasApiKey(checkApiKey());
         setProviderLabel(getProviderConfig().label);
+        setWritingStyle(getSavedStyle());
     }, []);
     const providerConfig = getProviderConfig();
 
