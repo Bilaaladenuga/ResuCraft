@@ -86,6 +86,11 @@ declare module 'lucide-react' {
     export const Briefcase: Icon;
     export const Clock: Icon;
     export const Building: Icon;
+    export const Info: Icon;
+    export const Shield: Icon;
+    export const Hash: Icon;
+    export const List: Icon;
+    export const Columns: Icon;
 }
 
 

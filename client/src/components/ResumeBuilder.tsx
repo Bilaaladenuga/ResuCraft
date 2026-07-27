@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -16,6 +16,7 @@ import SpellCheckModal from './SpellCheckModal';
 import TemplateCustomizerModal from './TemplateCustomizerModal';
 import CoverLetterBuilder from './CoverLetterBuilder';
 import TranslateModal from './TranslateModal';
+import ATSChecklistModal from './ATSChecklistModal';
 import Onboarding from './Onboarding';
 import { useToast } from './ToastContext';
 import { useTheme } from './ThemeContext';
@@ -82,6 +83,7 @@ const ResumeBuilder = () => {
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showCoverLetter, setShowCoverLetter] = useState(false);
     const [showTranslate, setShowTranslate] = useState(false);
+    const [showATSChecklist, setShowATSChecklist] = useState(false);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -630,6 +632,12 @@ const ResumeBuilder = () => {
                                                                 style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
                                                                 <Globe size={13} /> Translate
                                                             </button>
+                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
+                                                            <Shield size={13} /> ATS Checklist
+                                                        </button>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
@@ -749,6 +757,12 @@ const ResumeBuilder = () => {
                 setFormData={setFormData}
                 industry={template.industry}
                 onOpenSettings={() => setShowSettings(true)}
+            />
+
+            {/* ATS Checklist Modal */}
+            <ATSChecklistModal
+                isOpen={showATSChecklist}
+                onClose={() => setShowATSChecklist(false)}
             />
 
             {/* Template Customizer Modal */}

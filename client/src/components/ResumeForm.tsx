@@ -25,6 +25,8 @@ import {
     parseProjectEntries,
     parseAchievementEntries
 } from '../services/ai';
+import RoleSelector from './RoleSelector';
+import { RoleConfig } from '../data/roleData';
 
 interface SectionConfig {
     id: string;
@@ -91,6 +93,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     const [imageError, setImageError] = useState('');
     const [writeLoading, setWriteLoading] = useState<string | null>(null);
     const [writeError, setWriteError] = useState('');
+    const [quickFillLoading, setQuickFillLoading] = useState(false);
     const hasApiKey = checkApiKey();
     const writingStyle: WritingStyle = getSavedStyle();
 
@@ -409,11 +412,73 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         );
     };
 
+    const handleSelectRole = useCallback((role: RoleConfig) => {
+        // Set the designation and pre-fill skills
+        setFormData(prev => ({
+            ...prev,
+            designation: role.title,
+            skillsRaw: prev.skillsRaw?.trim()
+                ? prev.skillsRaw  // Don't overwrite if user already added skills
+                : role.skills.join(', ')
+        }));
+    }, [setFormData]);
+
+    const handleQuickFill = useCallback(async (role: RoleConfig) => {
+        setQuickFillLoading(true);
+        setWriteError('');
+
+        try {
+            // 1. Set designation + skills first
+            const skillsText = role.skills.join(', ');
+
+            // 2. Generate summary
+            const summaryText = role.summaryTemplate;
+
+            // 3. Generate experience entries (2 entries using fallback)
+            const rawExp = generateFallbackExperienceEntries(role.title, industry);
+            const expEntries = parseExperienceEntries(rawExp).map(e => ({
+                ...e,
+                id: Date.now() + Math.random() * 1000
+            }));
+
+            // 4. Generate education entry
+            const rawEdu = `SCHOOL: Example University\nDEGREE: ${role.sampleEducation}\nCITY: City, State\nSTART: ${new Date().getFullYear() - 6}-09\nEND: ${new Date().getFullYear() - 2}-06\nDESCRIPTION: Relevant coursework and projects. Dean's List. Graduated with honors.`;
+            const eduEntries = parseEducationEntries(rawEdu).map(e => ({
+                ...e,
+                id: Date.now() + Math.random() * 1000 + 100
+            }));
+
+            // Apply all at once
+            setFormData(prev => ({
+                ...prev,
+                designation: role.title,
+                skillsRaw: skillsText,
+                summary: summaryText,
+                experiences: expEntries,
+                educations: eduEntries
+            }));
+        } catch (err) {
+            console.error('Quick Fill failed:', err);
+            setWriteError('Quick fill encountered an issue. Some fields may not have been filled.');
+            setTimeout(() => setWriteError(''), 4000);
+        } finally {
+            setQuickFillLoading(false);
+        }
+    }, [setFormData, industry]);
+
     const renderAboutSection = () => {
         const isTouched = touched.about;
         const secErrors = errors.about || {};
         return (
             <>
+                {/* Role Selector — shown at top of About section */}
+                <RoleSelector
+                    industry={industry}
+                    currentDesignation={formData.designation || ''}
+                    onSelectRole={handleSelectRole}
+                    onQuickFill={handleQuickFill}
+                    quickFillLoading={quickFillLoading}
+                />
                 <div className="form-row">
                     <FormInput label="First Name" error={secErrors.firstName} touched={isTouched} inputId="firstName">
                         <input

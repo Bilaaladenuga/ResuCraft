@@ -409,7 +409,7 @@ const LandingPage = () => {
                             viewport={{ once: true }}
                             transition={{ delay: 0.15 }}
                         >
-                            <img src="/assets/templates-screenshot.png" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
+                            <img src="/assets/template-screenshot.png" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
                             <div className="showcase-caption">Career-Focused Templates</div>
                         </motion.div>
                         <motion.div

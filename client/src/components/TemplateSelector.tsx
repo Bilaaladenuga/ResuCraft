@@ -18,6 +18,7 @@ interface TemplateCard {
     color: string;
     bgGradient: string;
     badge: string | null;
+    atsTag?: 'premium' | 'optimized' | null;
 }
 
 const templates: TemplateCard[] = [
@@ -28,7 +29,8 @@ const templates: TemplateCard[] = [
         description: 'Optimized for software engineers, DevOps, data scientists, and IT professionals. Skills-first layout with project highlights.',
         color: '#06b6d4',
         bgGradient: 'linear-gradient(135deg, #0e1628, #0d2f3f)',
-        badge: 'Popular'
+        badge: 'Popular',
+        atsTag: 'premium'
     },
     {
         id: 'finance',
@@ -37,7 +39,8 @@ const templates: TemplateCard[] = [
         description: 'Conservative and professional layout for banking, accounting, and financial services. Experience-focused design.',
         color: '#f59e0b',
         bgGradient: 'linear-gradient(135deg, #1a1507, #2d2000)',
-        badge: null
+        badge: null,
+        atsTag: 'optimized'
     },
     {
         id: 'healthcare',
@@ -46,7 +49,8 @@ const templates: TemplateCard[] = [
         description: 'Clean clinical layout for doctors, nurses, and medical professionals. Includes certifications and license sections.',
         color: '#10b981',
         bgGradient: 'linear-gradient(135deg, #071a13, #0a2e1f)',
-        badge: null
+        badge: null,
+        atsTag: 'optimized'
     },
     {
         id: 'creative',
@@ -55,7 +59,8 @@ const templates: TemplateCard[] = [
         description: 'Bold and expressive layout for designers, artists, and creative professionals. Color-rich with portfolio emphasis.',
         color: '#a855f7',
         bgGradient: 'linear-gradient(135deg, #1a0e2e, #250d3d)',
-        badge: 'New'
+        badge: 'New',
+        atsTag: 'premium'
     },
     {
         id: 'general',
@@ -64,7 +69,8 @@ const templates: TemplateCard[] = [
         description: 'Classic ATS-friendly layout that works for any industry. Balanced sections with a clean, professional look.',
         color: '#64748b',
         bgGradient: 'linear-gradient(135deg, #111827, #1e293b)',
-        badge: 'ATS-Friendly'
+        badge: 'ATS Optimized',
+        atsTag: 'premium'
     },
     {
         id: 'legal',
@@ -73,7 +79,8 @@ const templates: TemplateCard[] = [
         description: 'Classic law firm layout for attorneys, paralegals, and consultants. Emphasizes education, bar admissions, and client experience.',
         color: '#1e3a5f',
         bgGradient: 'linear-gradient(135deg, #0c1a2e, #1a2d4a)',
-        badge: 'New'
+        badge: 'New',
+        atsTag: 'premium'
     },
     {
         id: 'education',
@@ -82,7 +89,8 @@ const templates: TemplateCard[] = [
         description: 'Scholarly academic layout for teachers, professors, and researchers. Highlights degrees, teaching experience, and publications.',
         color: '#7d2e2e',
         bgGradient: 'linear-gradient(135deg, #1f0d0d, #3a1a1a)',
-        badge: 'New'
+        badge: 'New',
+        atsTag: 'optimized'
     }
 ];
 
@@ -147,18 +155,51 @@ const TemplateSelector = () => {
                                 }}>
                                     {React.cloneElement(tmpl.icon as React.ReactElement<{ size?: number }>, { size: 48 })}
                                 </div>
-                                {tmpl.badge && (
-                                    <span
-                                        className="template-card-badge"
-                                        style={{
-                                            background: `${tmpl.color}20`,
-                                            color: tmpl.color,
-                                            border: `1px solid ${tmpl.color}40`
-                                        }}
-                                    >
-                                        {tmpl.badge}
-                                    </span>
-                                )}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    right: '10px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '4px',
+                                    alignItems: 'flex-end'
+                                }}>
+                                    {tmpl.badge && (
+                                        <span
+                                            className="template-card-badge"
+                                            style={{
+                                                background: `${tmpl.color}20`,
+                                                color: tmpl.color,
+                                                border: `1px solid ${tmpl.color}40`
+                                            }}
+                                        >
+                                            {tmpl.badge}
+                                        </span>
+                                    )}
+                                    {tmpl.atsTag && (
+                                        <span
+                                            style={{
+                                                fontSize: '0.55rem',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.06em',
+                                                padding: '2px 7px',
+                                                borderRadius: '100px',
+                                                background: tmpl.atsTag === 'premium'
+                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    : 'rgba(99, 102, 241, 0.12)',
+                                                color: tmpl.atsTag === 'premium'
+                                                    ? '#10b981'
+                                                    : '#818cf8',
+                                                border: tmpl.atsTag === 'premium'
+                                                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                                                    : '1px solid rgba(99, 102, 241, 0.25)'
+                                            }}
+                                        >
+                                            {tmpl.atsTag === 'premium' ? '★ ATS Premium' : 'ATS Ready'}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div className="template-card-info">
                                 <h3>{tmpl.name}</h3>
