@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { Reorder } from 'framer-motion';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench,
@@ -94,7 +94,8 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     const [writeLoading, setWriteLoading] = useState<string | null>(null);
     const [writeError, setWriteError] = useState('');
     const [quickFillLoading, setQuickFillLoading] = useState(false);
-    const hasApiKey = checkApiKey();
+    const [hasApiKey, setHasApiKey] = useState(false);
+    useEffect(() => { setHasApiKey(checkApiKey()); }, []);
     const writingStyle: WritingStyle = getSavedStyle();
 
     const generateForSection = useCallback(async (sectionId: string) => {

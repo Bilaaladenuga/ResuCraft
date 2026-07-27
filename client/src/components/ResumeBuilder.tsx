@@ -95,7 +95,8 @@ const ResumeBuilder = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
 
-    const hasApiKey = checkApiKey();
+    const [hasApiKey, setHasApiKey] = useState(false);
+    useEffect(() => { setHasApiKey(checkApiKey()); }, []);
     const toastCtx = useToast();
     const { theme, toggleTheme } = useTheme();
 

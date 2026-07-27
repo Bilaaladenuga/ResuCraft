@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { Cpu, Sparkles, Target, Wand2, Wrench, FileText, Activity, Copy, Check, BookmarkPlus, Briefcase } from 'lucide-react';
 import { FormData, ATSData, LoadingState, WritingStyle, WRITING_STYLES } from '../types';
@@ -47,7 +47,12 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
     const [jdSaved, setJdSaved] = useState(false);
 
     const [writingStyle, setWritingStyle] = useState<WritingStyle>(getSavedStyle());
-    const hasApiKey = checkApiKey();
+    const [hasApiKey, setHasApiKey] = useState(false);
+    const [providerLabel, setProviderLabel] = useState('Gemini');
+    useEffect(() => {
+        setHasApiKey(checkApiKey());
+        setProviderLabel(getProviderConfig().label);
+    }, []);
     const providerConfig = getProviderConfig();
 
     const getAIErrorMessage = (err: unknown): string => {
@@ -441,10 +446,9 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
                             {WRITING_STYLES[s].icon}{' '}{WRITING_STYLES[s].label}
                         </button>
                     ))}
-                </div>
-                <span style={{ color: 'var(--text-dim)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    {providerConfig.label}
-                </span>
+                </div>                                <span style={{ color: 'var(--text-dim)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                    {providerLabel}
+                                </span>
                 {!hasApiKey && (
                     <button className="btn btn-sm btn-accent" onClick={onOpenSettings}>
                         Configure
