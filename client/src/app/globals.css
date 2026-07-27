@@ -3235,6 +3235,10 @@ img {
     border-radius: 6px 6px 0 0;
 }
 
+.comparison-header-col--spacer {
+    background: transparent;
+}
+
 .comparison-header-col--traditional {
     background: rgba(239, 68, 68, 0.08);
     color: #ef4444;

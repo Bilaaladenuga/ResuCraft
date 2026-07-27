@@ -80,6 +80,7 @@ const ComparisonTable: React.FC = () => {
                 >
                     {/* Column headers */}
                     <div className="comparison-header">
+                        <div className="comparison-header-col comparison-header-col--spacer"></div>
                         <div className="comparison-header-col comparison-header-col--traditional">
                             <X size={18} />
                             <span>Traditional Resume</span>
