@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Key, ExternalLink, Sparkles, Download, CheckCircle } from 'lucide-react';
 import { AI_PROVIDERS } from '../services/ai';
 
@@ -25,8 +25,6 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     const [ollamaBaseUrl, setOllamaBaseUrl] = useState(getStored('ollama_base_url', AI_PROVIDERS.ollama.defaultBaseUrl || ''));
     const [ollamaModel, setOllamaModel] = useState(getStored('ollama_model', AI_PROVIDERS.ollama.defaultModel));
     const [saved, setSaved] = useState(false);
-
-    if (!isOpen) return null;
 
     const saveValue = (key: string, value: string) => {
         if (value.trim()) {
@@ -165,87 +163,130 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     };
 
     return (
-        <div className="modal-overlay" onClick={(e) => (e.target as HTMLElement) === e.currentTarget && onClose()}>
-            <motion.div className="glass-card modal-card" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.25 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                    <div>
-                        <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Key size={20} /> AI Configuration
-                        </h2>
-                        <p style={{ marginBottom: 0 }}>Choose how ResuCraft should power AI writing tools.</p>
-
-                        {!geminiKey && provider === 'gemini' && (
-                            <div style={{
-                                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0.02))',
-                                border: '1px solid rgba(245, 158, 11, 0.2)',
-                                borderRadius: 'var(--radius-md)',
-                                padding: '1rem',
-                                marginTop: '1rem',
-                                marginBottom: '1rem'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                    <Sparkles size={16} color="var(--secondary)" />
-                                    <strong style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>Free Tier Available!</strong>
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    className="modal-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                >
+                    <motion.div
+                        className="glass-card"
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                            maxWidth: '520px',
+                            width: '95%',
+                            maxHeight: '85vh',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: 0
+                        }}
+                    >
+                        {/* Fixed header */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            padding: '1.25rem 1.5rem 0.75rem',
+                            borderBottom: '1px solid var(--border)',
+                            flexShrink: 0
+                        }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Key size={18} color="var(--secondary)" />
+                                    <h2 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text)' }}>AI Configuration</h2>
                                 </div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                                    Google Gemini has a <strong style={{ color: 'var(--text)' }}>generous free tier</strong> —
-                                    60 requests per minute on Gemini 2.0 Flash, completely free.
-                                    No credit card required.
-                                </p>
-                                <a
-                                    href="https://aistudio.google.com/apikey"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn btn-sm btn-accent"
-                                    style={{
-                                        marginTop: '10px',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        textTransform: 'none',
-                                        letterSpacing: 'normal',
-                                        fontWeight: 600
-                                    }}
-                                >
-                                    <Download size={14} /> Get Your Free Gemini API Key
-                                </a>
-                                <p style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '6px', marginBottom: 0 }}>
-                                    Opens Google AI Studio — sign in with Google & copy your key.
+                                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem', margin: '0.25rem 0 0' }}>
+                                    Choose how ResuCraft should power AI writing tools.
                                 </p>
                             </div>
-                        )}
-                    </div>
-                    <button onClick={onClose} className="btn btn-ghost btn-icon" style={{ flexShrink: 0 }}>
-                        <X size={18} />
-                    </button>
-                </div>
+                            <button className="btn-icon-sm" onClick={onClose} style={{ flexShrink: 0, color: 'var(--text-dim)' }}>
+                                <X size={18} />
+                            </button>
+                        </div>
 
-                <div className="form-group" style={{ marginBottom: '1rem' }}>
-                    <label className="form-label">Provider</label>
-                    <select value={provider} onChange={(e) => setProvider(e.target.value)} className="form-input">
-                        <option value="gemini">Gemini</option>
-                        <option value="openai">OpenAI-compatible</option>
-                        <option value="openrouter">OpenRouter</option>
-                        <option value="ollama">Ollama local</option>
-                    </select>
-                </div>
+                        {/* Scrollable body */}
+                        <div style={{
+                            padding: '1rem 1.5rem 1.5rem',
+                            overflowY: 'auto',
+                            flex: 1
+                        }}>
+                            {!geminiKey && provider === 'gemini' && (
+                                <div style={{
+                                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0.02))',
+                                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                                    borderRadius: 'var(--radius-md)',
+                                    padding: '1rem',
+                                    marginBottom: '1rem'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <Sparkles size={16} color="var(--secondary)" />
+                                        <strong style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>Free Tier Available!</strong>
+                                    </div>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                                        Google Gemini has a <strong style={{ color: 'var(--text)' }}>generous free tier</strong> —
+                                        60 requests per minute on Gemini 2.0 Flash, completely free.
+                                        No credit card required.
+                                    </p>
+                                    <a
+                                        href="https://aistudio.google.com/apikey"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-sm btn-accent"
+                                        style={{
+                                            marginTop: '10px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            textTransform: 'none',
+                                            letterSpacing: 'normal',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        <Download size={14} /> Get Your Free Gemini API Key
+                                    </a>
+                                    <p style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '6px', marginBottom: 0 }}>
+                                        Opens Google AI Studio — sign in with Google & copy your key.
+                                    </p>
+                                </div>
+                            )}
 
-                {renderProviderFields()}
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label">Provider</label>
+                                <select value={provider} onChange={(e) => setProvider(e.target.value)} className="form-input">
+                                    <option value="gemini">Gemini</option>
+                                    <option value="openai">OpenAI-compatible</option>
+                                    <option value="openrouter">OpenRouter</option>
+                                    <option value="ollama">Ollama local</option>
+                                </select>
+                            </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1 }}>
-                        {saved ? 'SAVED' : 'SAVE SETTINGS'}
-                    </button>
-                    <button onClick={handleClearProvider} className="btn btn-danger">
-                        CLEAR
-                    </button>
-                </div>
+                            {renderProviderFields()}
 
-                <p style={{ color: 'var(--text-dim)', fontSize: '0.7rem', marginTop: '1rem', lineHeight: 1.5 }}>
-                    Keys are stored locally in this browser. OpenAI-compatible and OpenRouter keys are used directly from the client.
-                </p>
-            </motion.div>
-        </div>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1 }}>
+                                    {saved ? 'SAVED' : 'SAVE SETTINGS'}
+                                </button>
+                                <button onClick={handleClearProvider} className="btn btn-danger">
+                                    CLEAR
+                                </button>
+                            </div>
+
+                            <p style={{ color: 'var(--text-dim)', fontSize: '0.7rem', marginTop: '1rem', lineHeight: 1.5 }}>
+                                Keys are stored locally in this browser. OpenAI-compatible and OpenRouter keys are used directly from the client.
+                            </p>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 
