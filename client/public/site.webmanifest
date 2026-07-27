@@ -1,0 +1,16 @@
+{
+    "name": "ResuCraft — AI Resume Builder",
+    "short_name": "ResuCraft",
+    "description": "Build professional, ATS-friendly resumes with AI-powered assistance.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#060a14",
+    "theme_color": "#060a14",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}
