@@ -84,13 +84,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     rel="stylesheet"
                 />
 
-                {/* Google Search Console — set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION env var */}
-                {process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && (
-                    <meta
-                        name="google-site-verification"
-                        content={process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION}
-                    />
-                )}
+                {/* Google Search Console verification */}
+                <meta
+                    name="google-site-verification"
+                    content="t5sT4BNpi-zHmKh2Zj5mKFiDhEtUUqcGLBwl1uxLktc"
+                />
             </head>
             <body>
                 <ThemeProvider>
