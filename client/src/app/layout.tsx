@@ -1,8 +1,10 @@
 import './globals.css';
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import ToastProvider from '../components/ToastContext';
 import ThemeProvider from '../components/ThemeContext';
+import FeedbackButton from '../components/FeedbackButton';
 
 const SITE_URL = 'https://resu-craft-smoky.vercel.app';
 
@@ -86,7 +88,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <ThemeProvider>
                     <ToastProvider>{children}</ToastProvider>
+                    <FeedbackButton />
                 </ThemeProvider>
+
+                {/* Plausible Analytics — configure NEXT_PUBLIC_PLAUSIBLE_DOMAIN env var */}
+                {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+                    <Script
+                        defer
+                        data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+                        src="https://plausible.io/js/script.js"
+                        strategy="afterInteractive"
+                    />
+                )}
             </body>
         </html>
     );
