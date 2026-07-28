@@ -94,8 +94,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
             <body>
                 <ThemeProvider>
-                    <ToastProvider>{children}</ToastProvider>
-                    <FeedbackButton />
+                    <ToastProvider>
+                        {children}
+                        <FeedbackButton />
+                    </ToastProvider>
                 </ThemeProvider>
             </body>
         </html>
