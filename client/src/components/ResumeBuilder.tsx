@@ -87,6 +87,7 @@ const ResumeBuilder = () => {
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(false);
     const [resumeList, setResumeList] = useState<ResumeMeta[]>([]);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState('');
@@ -602,11 +603,15 @@ const ResumeBuilder = () => {
                                                             onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <Upload size={13} /> Import JSON
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
+                                                        </button>                                                            <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); handleExportJSON(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <Save size={13} /> Export JSON
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <Sparkles size={13} /> Restart Tutorial
                                                         </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
@@ -782,7 +787,7 @@ const ResumeBuilder = () => {
             />
 
             {/* First-run onboarding */}
-            <Onboarding />
+            <Onboarding forceShow={showOnboarding} onComplete={() => setShowOnboarding(false)} />
         </motion.div>
     );
 };
