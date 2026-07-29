@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, TabStopPosition, TabStopType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, TabStopType } from 'docx';
 import { saveAs } from 'file-saver';
 import { FormData } from '../types';
 import { FileText, Check } from 'lucide-react';
@@ -180,7 +180,7 @@ function createDocxDocument(data: FormData): Document {
                 ],
                 spacing: { after: 20, before: 160 },
                 tabStops: [
-                    { type: TabStopType.RIGHT, position: TabStopPosition.MAX },
+                    { type: TabStopType.RIGHT, position: 9360 },
                 ],
             })
         );

@@ -1,16 +1,9 @@
 import React from 'react';
-import { PDFDownloadLink, Document, Page, View, Text, StyleSheet, Font } from '@react-pdf/renderer';
+import { PDFDownloadLink, Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { FormData } from '../types';
 
-// Register a clean sans font
-Font.register({
-    family: 'Inter',
-    fonts: [
-        { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2', fontWeight: 400 },
-        { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 600 },
-        { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 700 },
-    ]
-});
+// No font registration needed — Helvetica is built into @react-pdf/renderer
+// Using built-in fonts avoids blank PDFs caused by external font load failures
 
 const colors = {
     primary: '#111827',
@@ -24,27 +17,22 @@ const colors = {
 const styles = StyleSheet.create({
     page: {
         padding: '40px 48px',
-        fontFamily: 'Inter',
+        fontFamily: 'Helvetica',
         fontSize: 10,
         color: colors.text,
         backgroundColor: colors.background
     },
     header: {
-        borderBottom: `3px solid ${colors.secondary}`,
+        borderBottomWidth: 3,
+        borderBottomColor: colors.secondary,
+        borderBottomStyle: 'solid',
         paddingBottom: 12,
         marginBottom: 20
-    },
-    headerTop: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 14
-    },
-    headerText: {
-        flex: 1
     },
     name: {
         fontSize: 26,
         fontWeight: 700,
+        fontFamily: 'Helvetica-Bold',
         color: colors.primary,
         marginBottom: 2
     },
@@ -56,10 +44,13 @@ const styles = StyleSheet.create({
     },
     contactRow: {
         flexDirection: 'row',
-        gap: 16,
         fontSize: 9,
-        color: colors.muted,
-        flexWrap: 'wrap'
+        color: colors.muted
+    },
+    contactItem: {
+        marginRight: 16,
+        fontSize: 9,
+        color: colors.muted
     },
     section: {
         marginBottom: 14
@@ -70,7 +61,9 @@ const styles = StyleSheet.create({
         color: colors.primary,
         textTransform: 'uppercase',
         letterSpacing: 1.5,
-        borderBottom: `1px solid ${colors.border}`,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        borderBottomStyle: 'solid',
         paddingBottom: 3,
         marginBottom: 8
     },
@@ -91,46 +84,31 @@ const styles = StyleSheet.create({
     entryTitle: {
         fontSize: 10,
         fontWeight: 600,
-        color: colors.primary
+        fontFamily: 'Helvetica-Bold',
+        color: colors.primary,
+        flexGrow: 1
     },
     entryDate: {
         fontSize: 8.5,
         color: colors.muted,
-        whiteSpace: 'nowrap'
+        textAlign: 'right'
     },
     entryCompany: {
         fontSize: 9,
         color: colors.muted,
         marginBottom: 3
     },
-    bulletList: {
-        marginTop: 2
-    },
     bullet: {
         fontSize: 9,
         lineHeight: 1.5,
         color: colors.text,
-        paddingLeft: 10,
+        marginLeft: 10,
         marginBottom: 1.5
-    },
-    skillsRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 4,
-        marginTop: 2
-    },
-    skillBadge: {
-        fontSize: 8.5,
-        color: colors.secondary,
-        backgroundColor: '#f0f9ff',
-        padding: '2px 6px',
-        borderRadius: 3
     },
     inlineItem: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        marginBottom: 2,
-        gap: 4
+        marginBottom: 2
     },
     inlineLabel: {
         fontSize: 9,
@@ -141,12 +119,13 @@ const styles = StyleSheet.create({
     inlineValue: {
         fontSize: 9,
         color: colors.text,
-        flex: 1
+        flexGrow: 1
     },
-    divider: {
-        height: 1,
-        backgroundColor: colors.border,
-        marginVertical: 8
+    footer: {
+        fontSize: 7,
+        color: colors.muted,
+        textAlign: 'center',
+        marginTop: 20
     }
 });
 
@@ -169,14 +148,12 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
             <Page size="A4" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <View style={styles.headerText}>
-                        <Text style={styles.name}>{fullName}</Text>
-                        <Text style={styles.designation}>{data.designation || 'Professional Title'}</Text>
-                    </View>
+                    <Text style={styles.name}>{fullName}</Text>
+                    {data.designation && <Text style={styles.designation}>{data.designation}</Text>}
                     <View style={styles.contactRow}>
-                        {data.email && <Text>{data.email}</Text>}
-                        {data.phone && <Text>{data.phone}</Text>}
-                        {data.address && <Text>{data.address}</Text>}
+                        {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
+                        {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
+                        {data.address && <Text style={styles.contactItem}>{data.address}</Text>}
                     </View>
                 </View>
 
@@ -206,7 +183,7 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                                     </Text>
                                 )}
                                 {exp.description && (
-                                    <View style={styles.bulletList}>
+                                    <View>
                                         {exp.description.split('\n').filter(Boolean).map((line, i) => (
                                             <Text key={i} style={styles.bullet}>• {line}</Text>
                                         ))}
@@ -251,9 +228,7 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                         <Text style={styles.sectionTitle}>Projects</Text>
                         {data.projects.map((proj) => (
                             <View key={proj.id} style={styles.entry}>
-                                <View style={styles.inlineItem}>
-                                    <Text style={styles.entryTitle}>{proj.title}</Text>
-                                </View>
+                                <Text style={styles.entryTitle}>{proj.title}</Text>
                                 {proj.description && (
                                     <Text style={styles.summaryText}>{proj.description}</Text>
                                 )}
@@ -268,9 +243,7 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                         <Text style={styles.sectionTitle}>Achievements</Text>
                         {data.achievements.map((ach) => (
                             <View key={ach.id} style={styles.entry}>
-                                <View style={styles.inlineItem}>
-                                    <Text style={styles.entryTitle}>{ach.title}</Text>
-                                </View>
+                                <Text style={styles.entryTitle}>{ach.title}</Text>
                                 {ach.description && (
                                     <Text style={styles.summaryText}>{ach.description}</Text>
                                 )}
@@ -280,9 +253,7 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                 )}
 
                 {/* Footer */}
-                <Text style={{ fontSize: 7, color: colors.muted, textAlign: 'center', marginTop: 20 }}>
-                    Generated with ResuCraft
-                </Text>
+                <Text style={styles.footer}>Generated with ResuCraft</Text>
             </Page>
         </Document>
     );
