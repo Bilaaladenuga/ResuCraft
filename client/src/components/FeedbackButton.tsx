@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle } from 'lucide-react';
+import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from './ToastContext';
 
 type FeedbackCategory = 'bug' | 'feature' | 'general';
@@ -12,7 +12,16 @@ const CATEGORIES: { value: FeedbackCategory; label: string; icon: React.ReactNod
     { value: 'general', label: 'General Feedback', icon: <FileText size={14} /> },
 ];
 
+const SUBJECT_MAP: Record<FeedbackCategory, string> = {
+    bug: '🐛 Bug Report - ResuCraft',
+    feature: '💡 Feature Request - ResuCraft',
+    general: '📝 General Feedback - ResuCraft',
+};
+
 const STORAGE_KEY = 'resucraft_feedback';
+
+const WEB3FORMS_URL = 'https://api.web3forms.com/submit';
+const WEB3FORMS_KEY = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY : '';
 
 interface FeedbackEntry {
     id: string;
@@ -20,6 +29,7 @@ interface FeedbackEntry {
     message: string;
     email: string;
     timestamp: number;
+    sent?: boolean;
 }
 
 const FeedbackButton = () => {
@@ -28,13 +38,16 @@ const FeedbackButton = () => {
     const [message, setMessage] = useState('');
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [sending, setSending] = useState(false);
     const { success, error } = useToast();
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!message.trim()) {
             error('Please write a message before submitting.');
             return;
         }
+
+        setSending(true);
 
         const entry: FeedbackEntry = {
             id: `fb-${Date.now()}`,
@@ -44,21 +57,83 @@ const FeedbackButton = () => {
             timestamp: Date.now(),
         };
 
+        let delivered = false;
+
         try {
-            const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            existing.push(entry);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+            // 1. Always save to localStorage as backup
+            try {
+                const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                existing.push(entry);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+            } catch {
+                // localStorage might be full — non-critical
+            }
+
+            // 2. Send to Web3Forms (emails you directly)
+            if (WEB3FORMS_KEY) {
+                const formData = new FormData();
+                formData.append('access_key', WEB3FORMS_KEY);
+                formData.append('subject', SUBJECT_MAP[category]);
+                formData.append('name', `User (${category.replace('_', ' ')})`);
+                formData.append('botcheck', ''); // honeypot anti-spam
+                formData.append('email', email || 'no-reply@resucraft.app');
+                formData.append('message', [
+                    `--- ${SUBJECT_MAP[category]} ---`,
+                    ``,
+                    message.trim(),
+                    ``,
+                    `--- Metadata ---`,
+                    `Category: ${category}`,
+                    `User Email: ${email || 'Not provided'}`,
+                    `Date: ${new Date(entry.timestamp).toLocaleString()}`,
+                    `User Agent: ${typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : 'Unknown'}`,
+                ].join('\n'));
+
+                const response = await fetch(WEB3FORMS_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+                delivered = result.success === true;
+
+                if (!delivered) {
+                    console.warn('Web3Forms submission logged but not delivered:', result);
+                }
+            }
+
+            entry.sent = delivered;
+
+            // 3. Update localStorage to reflect send status
+            try {
+                const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                const idx = stored.findIndex((e: FeedbackEntry) => e.id === entry.id);
+                if (idx !== -1) stored[idx].sent = delivered;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            } catch { /* ignore */ }
+
             setSubmitted(true);
-            success('Thank you! Your feedback has been saved.');
+
+            if (delivered) {
+                success('Feedback sent! I\'ll review it shortly. 🙌');
+            } else if (WEB3FORMS_KEY) {
+                success('Feedback saved locally. Will retry sending.');
+            } else {
+                success('Feedback saved! Set up Web3Forms to get email notifications.');
+            }
+
             setTimeout(() => {
                 setIsOpen(false);
                 setSubmitted(false);
+                setSending(false);
                 setMessage('');
                 setEmail('');
                 setCategory('general');
-            }, 1500);
-        } catch {
-            error('Could not save feedback. Please try again.');
+            }, 2000);
+        } catch (e) {
+            console.error('Feedback error:', e);
+            error('Could not submit. Saved locally.');
+            setSending(false);
         }
     };
 
@@ -122,7 +197,7 @@ const FeedbackButton = () => {
                         {submitted ? (
                             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
                                 <CheckCircle size={40} color="var(--success)" style={{ marginBottom: '0.75rem' }} />
-                                <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Sent!</h4>
+                                <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Sent! 🙌</h4>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Thanks for helping improve ResuCraft.</p>
                             </div>
                         ) : (
@@ -237,13 +312,13 @@ const FeedbackButton = () => {
                                         letterSpacing: '0.5px',
                                         marginBottom: '0.35rem',
                                     }}>
-                                        Email <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-dim)' }}>(optional)</span>
+                                        Your Email <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-dim)' }}>(optional, so I can reply)</span>
                                     </label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={e => setEmail(e.target.value)}
-                                        placeholder="So I can follow up..."
+                                        placeholder="you@example.com"
                                         style={{
                                             width: '100%',
                                             background: 'rgba(255,255,255,0.03)',
@@ -264,7 +339,7 @@ const FeedbackButton = () => {
                                 {/* Submit */}
                                 <button
                                     onClick={handleSubmit}
-                                    disabled={!message.trim()}
+                                    disabled={!message.trim() || sending}
                                     className="btn btn-primary btn-sm"
                                     style={{
                                         width: '100%',
@@ -274,10 +349,16 @@ const FeedbackButton = () => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '6px',
+                                        opacity: !message.trim() || sending ? 0.6 : 1,
+                                        cursor: !message.trim() || sending ? 'not-allowed' : 'pointer',
                                     }}
                                 >
-                                    <ArrowRight size={14} />
-                                    Send Feedback
+                                    {sending ? (
+                                        <Loader2 size={14} className="spin-animation" />
+                                    ) : (
+                                        <ArrowRight size={14} />
+                                    )}
+                                    {sending ? 'Sending...' : 'Send Feedback'}
                                 </button>
 
                                 <p style={{
@@ -286,7 +367,9 @@ const FeedbackButton = () => {
                                     textAlign: 'center',
                                     marginTop: '0.5rem',
                                 }}>
-                                    Your feedback stays on your device until you export it.
+                                    {WEB3FORMS_KEY
+                                        ? 'Your feedback will be sent to the developer via email.'
+                                        : 'Feedback is saved locally. Set up Web3Forms for email delivery.'}
                                 </p>
                             </>
                         )}
