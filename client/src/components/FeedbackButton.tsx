@@ -12,16 +12,7 @@ const CATEGORIES: { value: FeedbackCategory; label: string; icon: React.ReactNod
     { value: 'general', label: 'General Feedback', icon: <FileText size={14} /> },
 ];
 
-const SUBJECT_MAP: Record<FeedbackCategory, string> = {
-    bug: '🐛 Bug Report - ResuCraft',
-    feature: '💡 Feature Request - ResuCraft',
-    general: '📝 General Feedback - ResuCraft',
-};
-
 const STORAGE_KEY = 'resucraft_feedback';
-
-const WEB3FORMS_URL = 'https://api.web3forms.com/submit';
-const WEB3FORMS_KEY = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY : '';
 
 interface FeedbackEntry {
     id: string;
@@ -69,40 +60,24 @@ const FeedbackButton = () => {
                 // localStorage might be full — non-critical
             }
 
-            // 2. Send to Web3Forms (emails you directly)
-            if (WEB3FORMS_KEY) {
-                const formData = new FormData();
-                formData.append('access_key', WEB3FORMS_KEY);
-                formData.append('subject', SUBJECT_MAP[category]);
-                formData.append('name', `User (${category.replace('_', ' ')})`);
-                formData.append('botcheck', ''); // honeypot anti-spam
-                formData.append('email', email || 'no-reply@resucraft.app');
-                formData.append('message', [
-                    `--- ${SUBJECT_MAP[category]} ---`,
-                    ``,
-                    message.trim(),
-                    ``,
-                    `--- Metadata ---`,
-                    `Category: ${category}`,
-                    `User Email: ${email || 'Not provided'}`,
-                    `Date: ${new Date(entry.timestamp).toLocaleString()}`,
-                    `User Agent: ${typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : 'Unknown'}`,
-                ].join('\n'));
-
-                const response = await fetch(WEB3FORMS_URL, {
+            // 2. Send to our API route (which emails you via Gmail SMTP)
+            try {
+                const response = await fetch('/api/feedback', {
                     method: 'POST',
-                    body: formData,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category: entry.category,
+                        message: entry.message,
+                        email: entry.email || undefined,
+                        userAgent: navigator.userAgent.slice(0, 200),
+                    }),
                 });
 
                 const result = await response.json();
-                delivered = result.success === true;
-
-                if (!delivered) {
-                    console.warn('Web3Forms submission logged but not delivered:', result);
-                }
+                delivered = result.delivered === true;
+            } catch {
+                console.warn('API route unreachable — saved locally.');
             }
-
-            entry.sent = delivered;
 
             // 3. Update localStorage to reflect send status
             try {
@@ -116,10 +91,8 @@ const FeedbackButton = () => {
 
             if (delivered) {
                 success('Feedback sent! I\'ll review it shortly. 🙌');
-            } else if (WEB3FORMS_KEY) {
-                success('Feedback saved locally. Will retry sending.');
             } else {
-                success('Feedback saved! Set up Web3Forms to get email notifications.');
+                success('Feedback saved! Will send when connection is available.');
             }
 
             setTimeout(() => {
@@ -130,8 +103,7 @@ const FeedbackButton = () => {
                 setEmail('');
                 setCategory('general');
             }, 2000);
-        } catch (e) {
-            console.error('Feedback error:', e);
+        } catch {
             error('Could not submit. Saved locally.');
             setSending(false);
         }
@@ -367,9 +339,7 @@ const FeedbackButton = () => {
                                     textAlign: 'center',
                                     marginTop: '0.5rem',
                                 }}>
-                                    {WEB3FORMS_KEY
-                                        ? 'Your feedback will be sent to the developer via email.'
-                                        : 'Feedback is saved locally. Set up Web3Forms for email delivery.'}
+                                    Your feedback is sent directly to the developer's inbox.
                                 </p>
                             </>
                         )}
