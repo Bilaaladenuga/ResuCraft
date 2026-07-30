@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle, Loader2 } from 'lucide-react';
+import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle } from 'lucide-react';
 import { useToast } from './ToastContext';
 
 type FeedbackCategory = 'bug' | 'feature' | 'general';
@@ -20,7 +20,6 @@ interface FeedbackEntry {
     message: string;
     email: string;
     timestamp: number;
-    sent?: boolean;
 }
 
 const FeedbackButton = () => {
@@ -29,16 +28,13 @@ const FeedbackButton = () => {
     const [message, setMessage] = useState('');
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
-    const [sending, setSending] = useState(false);
     const { success, error } = useToast();
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!message.trim()) {
             error('Please write a message before submitting.');
             return;
         }
-
-        setSending(true);
 
         const entry: FeedbackEntry = {
             id: `fb-${Date.now()}`,
@@ -48,64 +44,21 @@ const FeedbackButton = () => {
             timestamp: Date.now(),
         };
 
-        let delivered = false;
-
         try {
-            // 1. Always save to localStorage as backup
-            try {
-                const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                existing.push(entry);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-            } catch {
-                // localStorage might be full — non-critical
-            }
-
-            // 2. Send to our API route (which emails you via Gmail SMTP)
-            try {
-                const response = await fetch('/api/feedback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        category: entry.category,
-                        message: entry.message,
-                        email: entry.email || undefined,
-                        userAgent: navigator.userAgent.slice(0, 200),
-                    }),
-                });
-
-                const result = await response.json();
-                delivered = result.delivered === true;
-            } catch {
-                console.warn('API route unreachable — saved locally.');
-            }
-
-            // 3. Update localStorage to reflect send status
-            try {
-                const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                const idx = stored.findIndex((e: FeedbackEntry) => e.id === entry.id);
-                if (idx !== -1) stored[idx].sent = delivered;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-            } catch { /* ignore */ }
-
+            const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            existing.push(entry);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
             setSubmitted(true);
-
-            if (delivered) {
-                success('Feedback sent! I\'ll review it shortly. 🙌');
-            } else {
-                success('Feedback saved! Will send when connection is available.');
-            }
-
+            success('Feedback saved! View it in Feedback Inbox.');
             setTimeout(() => {
                 setIsOpen(false);
                 setSubmitted(false);
-                setSending(false);
                 setMessage('');
                 setEmail('');
                 setCategory('general');
-            }, 2000);
+            }, 1500);
         } catch {
-            error('Could not submit. Saved locally.');
-            setSending(false);
+            error('Could not save feedback. Please try again.');
         }
     };
 
@@ -169,8 +122,8 @@ const FeedbackButton = () => {
                         {submitted ? (
                             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
                                 <CheckCircle size={40} color="var(--success)" style={{ marginBottom: '0.75rem' }} />
-                                <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Sent! 🙌</h4>
-                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Thanks for helping improve ResuCraft.</p>
+                                <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Saved! 🙌</h4>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>View it in the Feedback Inbox.</p>
                             </div>
                         ) : (
                             <>
@@ -311,7 +264,7 @@ const FeedbackButton = () => {
                                 {/* Submit */}
                                 <button
                                     onClick={handleSubmit}
-                                    disabled={!message.trim() || sending}
+                                    disabled={!message.trim()}
                                     className="btn btn-primary btn-sm"
                                     style={{
                                         width: '100%',
@@ -321,16 +274,12 @@ const FeedbackButton = () => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '6px',
-                                        opacity: !message.trim() || sending ? 0.6 : 1,
-                                        cursor: !message.trim() || sending ? 'not-allowed' : 'pointer',
+                                        opacity: !message.trim() ? 0.6 : 1,
+                                        cursor: !message.trim() ? 'not-allowed' : 'pointer',
                                     }}
                                 >
-                                    {sending ? (
-                                        <Loader2 size={14} className="spin-animation" />
-                                    ) : (
-                                        <ArrowRight size={14} />
-                                    )}
-                                    {sending ? 'Sending...' : 'Send Feedback'}
+                                    <ArrowRight size={14} />
+                                    Send Feedback
                                 </button>
 
                                 <p style={{
@@ -339,7 +288,7 @@ const FeedbackButton = () => {
                                     textAlign: 'center',
                                     marginTop: '0.5rem',
                                 }}>
-                                    Your feedback is sent directly to the developer's inbox.
+                                    Feedback is saved and viewable in the builder's Feedback Inbox.
                                 </p>
                             </>
                         )}

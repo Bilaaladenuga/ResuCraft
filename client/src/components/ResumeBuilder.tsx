@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -17,6 +17,7 @@ import TemplateCustomizerModal from './TemplateCustomizerModal';
 import CoverLetterBuilder from './CoverLetterBuilder';
 import TranslateModal from './TranslateModal';
 import ATSChecklistModal from './ATSChecklistModal';
+import FeedbackInbox from './FeedbackInbox';
 import Onboarding from './Onboarding';
 import { useToast } from './ToastContext';
 import { useTheme } from './ThemeContext';
@@ -84,6 +85,7 @@ const ResumeBuilder = () => {
     const [showCoverLetter, setShowCoverLetter] = useState(false);
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
+    const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -613,6 +615,11 @@ const ResumeBuilder = () => {
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
                                                             <Sparkles size={13} /> Restart Tutorial
                                                         </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowFeedbackInbox(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <HelpCircle size={13} /> Feedback Inbox
+                                                        </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); handleValidateAll(); }}
@@ -785,6 +792,9 @@ const ResumeBuilder = () => {
                 isOpen={showResumeManager}
                 onClose={() => setShowResumeManager(false)}
             />
+
+            {/* Feedback Inbox */}
+            <FeedbackInbox isOpen={showFeedbackInbox} onClose={() => setShowFeedbackInbox(false)} />
 
             {/* First-run onboarding */}
             <Onboarding forceShow={showOnboarding} onComplete={() => setShowOnboarding(false)} />
