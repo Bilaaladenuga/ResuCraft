@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle } from 'lucide-react';
+import { HelpCircle, X, ArrowRight, AlertTriangle, Sparkles, FileText, CheckCircle, MessageSquare } from 'lucide-react';
 import { useToast } from './ToastContext';
 
 type FeedbackCategory = 'bug' | 'feature' | 'general';
@@ -13,6 +13,7 @@ const CATEGORIES: { value: FeedbackCategory; label: string; icon: React.ReactNod
 ];
 
 const STORAGE_KEY = 'resucraft_feedback';
+const FEEDBACK_EMAIL = 'adenugabilaal75@gmail.com';
 
 interface FeedbackEntry {
     id: string;
@@ -28,7 +29,27 @@ const FeedbackButton = () => {
     const [message, setMessage] = useState('');
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [mailtoUrl, setMailtoUrl] = useState('');
     const { success, error } = useToast();
+
+    // Builds a pre-filled email draft to the developer
+    const buildMailto = (entry: FeedbackEntry): string => {
+        const label = CATEGORIES.find(c => c.value === entry.category)?.label ?? 'Feedback';
+        const subject = encodeURIComponent(`${label} — ResuCraft Feedback`);
+        const body = encodeURIComponent(
+            `Category: ${label}\n\n${entry.message}\n\n` +
+            (entry.email ? `Reply to: ${entry.email}\n\n` : '') +
+            `---\nSent via ResuCraft on ${new Date().toLocaleString()}`
+        );
+        return `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
+    };
+
+    const openEmailDraft = (entry: FeedbackEntry) => {
+        const url = buildMailto(entry);
+        setMailtoUrl(url);
+        // Opens the user's email app with the message pre-filled
+        window.location.href = url;
+    };
 
     const handleSubmit = () => {
         if (!message.trim()) {
@@ -45,21 +66,30 @@ const FeedbackButton = () => {
         };
 
         try {
+            // 1) Backup: save locally so it also shows in the Feedback Inbox
             const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             existing.push(entry);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+
+            // 2) Deliver: open a pre-filled email draft to the developer
+            openEmailDraft(entry);
+
             setSubmitted(true);
-            success('Feedback saved! View it in Feedback Inbox.');
-            setTimeout(() => {
-                setIsOpen(false);
-                setSubmitted(false);
-                setMessage('');
-                setEmail('');
-                setCategory('general');
-            }, 1500);
+            success('Feedback saved! Email draft opened.');
+            // NOTE: no auto-close here — the user may be in their email app.
+            // The success screen stays open (with a fallback button) until they close it.
         } catch {
             error('Could not save feedback. Please try again.');
         }
+    };
+
+    const handleClose = () => {
+        setIsOpen(false);
+        setSubmitted(false);
+        setMessage('');
+        setEmail('');
+        setCategory('general');
+        setMailtoUrl('');
     };
 
     return (
@@ -121,9 +151,49 @@ const FeedbackButton = () => {
                     >
                         {submitted ? (
                             <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem', marginRight: '-0.5rem' }}>
+                                    <button
+                                        onClick={handleClose}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: 'var(--text-dim)',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            borderRadius: '4px',
+                                            display: 'flex',
+                                            transition: 'all 0.15s',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+                                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-dim)')}
+                                        aria-label="Close"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
                                 <CheckCircle size={40} color="var(--success)" style={{ marginBottom: '0.75rem' }} />
                                 <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Saved! 🙌</h4>
-                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>View it in the Feedback Inbox.</p>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Also saved to your Feedback Inbox.</p>
+                                {mailtoUrl && (
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={() => { window.location.href = mailtoUrl; }}
+                                        style={{
+                                            marginTop: '0.75rem',
+                                            fontSize: '0.75rem',
+                                            padding: '0.6rem 1rem',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                        }}
+                                    >
+                                        <MessageSquare size={14} />
+                                        Didn't open? Send via Email
+                                    </button>
+                                )}
+                                <p style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '0.6rem' }}>
+                                    Your email app should open with the message pre-filled to the developer.
+                                </p>
                             </div>
                         ) : (
                             <>
@@ -288,7 +358,7 @@ const FeedbackButton = () => {
                                     textAlign: 'center',
                                     marginTop: '0.5rem',
                                 }}>
-                                    Feedback is saved and viewable in the builder's Feedback Inbox.
+                                    Your email app will open with your message pre-filled to the developer.
                                 </p>
                             </>
                         )}
