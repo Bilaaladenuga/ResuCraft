@@ -8,6 +8,8 @@ import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
 import SettingsModal from './SettingsModal';
 import LinkedInImportModal from './LinkedInImportModal';
+import PDFImportModal from './PDFImportModal';
+import ATSTextModal from './ATSTextModal';
 import PDFExportButton from './PDFExport';
 import DOCXExportButton from './DOCXExport';
 import ResumeScoreModal from './ResumeScoreModal';
@@ -86,6 +88,10 @@ const ResumeBuilder = () => {
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
     const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
+    const [showPDFImport, setShowPDFImport] = useState(false);
+    const [showATSText, setShowATSText] = useState(false);
+    const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
+    const previewWrapRef = useRef<HTMLDivElement>(null);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -179,6 +185,32 @@ const ResumeBuilder = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [undo, redo]);
+
+    // One-Page Checker — measure the rendered preview height at fixed A4 width (794px @ 96dpi),
+    // compared against A4 height (1123px @ 96dpi). Temporarily forcing the width keeps the
+    // estimate accurate regardless of the fluid preview column width.
+    useEffect(() => {
+        const measure = () => {
+            const el = previewWrapRef.current?.querySelector('#resume-preview') as HTMLElement | null;
+            if (!el) return;
+            const originalWidth = el.style.width;
+            el.style.width = '794px'; // A4 width — measure at the real sheet size
+            const h = el.scrollHeight;
+            el.style.width = originalWidth;
+            setEstimatedPages(h / 1123);
+        };
+        // Wait for render + fonts, then measure
+        const timer = setTimeout(measure, 350);
+        let ro: ResizeObserver | null = null;
+        if (typeof ResizeObserver !== 'undefined' && previewWrapRef.current) {
+            ro = new ResizeObserver(measure);
+            ro.observe(previewWrapRef.current);
+        }
+        return () => {
+            clearTimeout(timer);
+            ro?.disconnect();
+        };
+    }, [formData, templateId, customization]);
 
     // Close dropdowns on outside click
     useEffect(() => {
@@ -602,6 +634,16 @@ const ResumeBuilder = () => {
                                                             <Linkedin size={13} /> LinkedIn Import
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowPDFImport(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#ef4444' }}>
+                                                            <Upload size={13} /> Import PDF
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowATSText(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
+                                                            <Copy size={13} /> Copy as Text (ATS)
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <Upload size={13} /> Import JSON
@@ -725,7 +767,36 @@ const ResumeBuilder = () => {
 
                 {/* Right: Preview */}
                 <div className="builder-right">
-                    <ResumePreview formData={formData} templateId={templateId} customization={customization} />
+                    {/* One-Page Checker chip */}
+                    {estimatedPages !== null && (
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '0.45rem 0.85rem',
+                            marginBottom: '0.75rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.72rem', fontWeight: 600,
+                            border: `1px solid ${estimatedPages > 1.1 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.25)'}`,
+                            background: estimatedPages > 1.1 ? 'rgba(245, 158, 11, 0.06)' : 'rgba(16, 185, 129, 0.05)',
+                            color: estimatedPages > 1.1 ? 'var(--secondary)' : 'var(--success)'
+                        }}>
+                            {estimatedPages > 1.1 ? (
+                                <>
+                                    <AlertCircle size={13} />
+                                    <span>
+                                        ~{estimatedPages.toFixed(1)} pages — recruiters prefer one. Try trimming bullets or using Compact spacing in Customize.
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <ShieldCheck size={13} />
+                                    <span>Fits on 1 page ✓</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    <div ref={previewWrapRef}>
+                        <ResumePreview formData={formData} templateId={templateId} customization={customization} />
+                    </div>
                 </div>
             </div>
 
@@ -737,6 +808,20 @@ const ResumeBuilder = () => {
                 isOpen={showLinkedInModal}
                 onClose={() => setShowLinkedInModal(false)}
                 onImport={handleLinkedInImport}
+            />
+
+            {/* PDF Import Modal */}
+            <PDFImportModal
+                isOpen={showPDFImport}
+                onClose={() => setShowPDFImport(false)}
+                onImport={handleLinkedInImport}
+            />
+
+            {/* ATS Text Modal */}
+            <ATSTextModal
+                isOpen={showATSText}
+                onClose={() => setShowATSText(false)}
+                formData={formData}
             />
 
             {/* Resume Score Modal */}
