@@ -568,3 +568,27 @@ export function createCoverLetter(
     saveCoverLetter(cl);
     return cl;
 }
+
+// ─── One-Page Checker preference ───
+
+const PAGE_WARNING_KEY = (templateId: string): string => `${STORAGE_PREFIX}page_warning_${templateId}`;
+
+export function isPageWarningDismissed(templateId: string): boolean {
+    try {
+        return localStorage.getItem(PAGE_WARNING_KEY(templateId)) === '1';
+    } catch {
+        return false;
+    }
+}
+
+export function setPageWarningDismissedPref(templateId: string, dismissed: boolean): void {
+    try {
+        if (dismissed) {
+            localStorage.setItem(PAGE_WARNING_KEY(templateId), '1');
+        } else {
+            localStorage.removeItem(PAGE_WARNING_KEY(templateId));
+        }
+    } catch {
+        // Silently fail
+    }
+}

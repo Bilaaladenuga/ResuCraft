@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle, X } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -30,7 +30,7 @@ import {
     saveDraft, loadDraft, clearDraft, exportResumeAsJSON, importResumeFromJSON,
     getResumeById, saveResume, getResumeIndex, getActiveResumeId,
     setActiveResumeId, createResume, renameResume, duplicateResume,
-    getCustomization
+    getCustomization, isPageWarningDismissed, setPageWarningDismissedPref
 } from '../services/storage';
 import { validateSection, validateAllSections, hasErrors } from '../services/validation';
 import { FormData, ValidationErrors, TouchedSections, OpenSections, ResumeMeta, TemplateCustomization, DEFAULT_CUSTOMIZATION } from '../types';
@@ -91,7 +91,24 @@ const ResumeBuilder = () => {
     const [showPDFImport, setShowPDFImport] = useState(false);
     const [showATSText, setShowATSText] = useState(false);
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
+    const [pageWarningDismissed, setPageWarningDismissed] = useState(false);
     const previewWrapRef = useRef<HTMLDivElement>(null);
+
+    // Sync dismissal preference after mount (avoids SSR hydration mismatch from
+    // reading localStorage during render) and reset it when switching templates.
+    useEffect(() => {
+        setPageWarningDismissed(isPageWarningDismissed(templateId));
+    }, [templateId]);
+
+    const handleDismissPageWarning = useCallback(() => {
+        setPageWarningDismissed(true);
+        setPageWarningDismissedPref(templateId, true);
+    }, [templateId]);
+
+    const handleRestorePageWarning = useCallback(() => {
+        setPageWarningDismissed(false);
+        setPageWarningDismissedPref(templateId, false);
+    }, [templateId]);
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -669,6 +686,21 @@ const ResumeBuilder = () => {
                                                             <ShieldCheck size={13} /> Validate
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => {
+                                                                setShowMoreMenu(false);
+                                                                if (pageWarningDismissed) {
+                                                                    handleRestorePageWarning();
+                                                                } else {
+                                                                    handleDismissPageWarning();
+                                                                }
+                                                            }}
+                                                            title={pageWarningDismissed ? 'Show the one-page warning again' : 'Hide the one-page warning'}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <ShieldCheck size={13} />
+                                                            <span style={{ flex: 1 }}>One-Page Warning</span>
+                                                            <Check size={12} color={pageWarningDismissed ? 'var(--text-dim)' : 'var(--success)'} />
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <BookOpen size={13} /> Spell Check
@@ -767,8 +799,8 @@ const ResumeBuilder = () => {
 
                 {/* Right: Preview */}
                 <div className="builder-right">
-                    {/* One-Page Checker chip */}
-                    {estimatedPages !== null && (
+                    {/* One-Page Checker chip (dismissible — some resumes are meant to be longer) */}
+                    {estimatedPages !== null && !(estimatedPages > 1.1 && pageWarningDismissed) && (
                         <div style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
                             padding: '0.45rem 0.85rem',
@@ -782,9 +814,23 @@ const ResumeBuilder = () => {
                             {estimatedPages > 1.1 ? (
                                 <>
                                     <AlertCircle size={13} />
-                                    <span>
+                                    <span style={{ flex: 1 }}>
                                         ~{estimatedPages.toFixed(1)} pages — recruiters prefer one. Try trimming bullets or using Compact spacing in Customize.
                                     </span>
+                                    <button
+                                        onClick={handleDismissPageWarning}
+                                        title="Ignore — my resume is meant to be this long"
+                                        style={{
+                                            background: 'none', border: 'none', cursor: 'pointer',
+                                            color: 'inherit', opacity: 0.6, padding: '2px',
+                                            display: 'flex', alignItems: 'center',
+                                            transition: 'opacity 0.15s'
+                                        }}
+                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.6'; }}
+                                    >
+                                        <X size={13} />
+                                    </button>
                                 </>
                             ) : (
                                 <>
