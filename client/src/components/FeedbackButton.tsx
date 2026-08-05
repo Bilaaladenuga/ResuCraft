@@ -30,25 +30,71 @@ const FeedbackButton = () => {
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [mailtoUrl, setMailtoUrl] = useState('');
+    const [gmailUrl, setGmailUrl] = useState('');
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailBody, setEmailBody] = useState('');
+    const [copied, setCopied] = useState(false);
     const { success, error } = useToast();
 
-    // Builds a pre-filled email draft to the developer
-    const buildMailto = (entry: FeedbackEntry): string => {
+    // Builds the pre-filled email content (subject + plain-text body)
+    const buildEmailContent = (entry: FeedbackEntry): { subject: string; body: string } => {
         const label = CATEGORIES.find(c => c.value === entry.category)?.label ?? 'Feedback';
-        const subject = encodeURIComponent(`${label} — ResuCraft Feedback`);
-        const body = encodeURIComponent(
+        const subject = `${label} — ResuCraft Feedback`;
+        const body =
             `Category: ${label}\n\n${entry.message}\n\n` +
             (entry.email ? `Reply to: ${entry.email}\n\n` : '') +
-            `---\nSent via ResuCraft on ${new Date().toLocaleString()}`
-        );
-        return `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${body}`;
+            `---\nSent via ResuCraft on ${new Date().toLocaleString()}`;
+        return { subject, body };
+    };
+
+    // Opens the device's email app (reliable on mobile, where a mail app is always set up)
+    const buildMailto = (entry: FeedbackEntry): string => {
+        const { subject, body } = buildEmailContent(entry);
+        return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    };
+
+    // Opens Gmail web compose in the browser (works on desktop with no mail client installed)
+    const buildGmailUrl = (entry: FeedbackEntry): string => {
+        const { subject, body } = buildEmailContent(entry);
+        return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(FEEDBACK_EMAIL)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     };
 
     const openEmailDraft = (entry: FeedbackEntry) => {
-        const url = buildMailto(entry);
-        setMailtoUrl(url);
-        // Opens the user's email app with the message pre-filled
-        window.location.href = url;
+        const { subject, body } = buildEmailContent(entry);
+        const mailto = buildMailto(entry);
+        const gmail = buildGmailUrl(entry);
+        setMailtoUrl(mailto);
+        setGmailUrl(gmail);
+        setEmailSubject(subject);
+        setEmailBody(body);
+
+        // On mobile, mailto reliably opens the mail app. On desktop it often
+        // silently fails (no mail client configured), so we skip the auto-attempt
+        // and show clear delivery options on the success screen instead.
+        const isMobile = typeof navigator !== 'undefined' && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
+        if (isMobile) {
+            window.location.href = mailto;
+        }
+    };
+
+    // Universal fallback: copies the composed email so the user can paste it anywhere
+    const copyEmail = async () => {
+        const text = `To: ${FEEDBACK_EMAIL}\nSubject: ${emailSubject}\n\n${emailBody}`;
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            // Fallback for older browsers / non-secure contexts
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const handleSubmit = () => {
@@ -75,7 +121,7 @@ const FeedbackButton = () => {
             openEmailDraft(entry);
 
             setSubmitted(true);
-            success('Feedback saved! Email draft opened.');
+            success('Feedback saved! See options to send it.');
             // NOTE: no auto-close here — the user may be in their email app.
             // The success screen stays open (with a fallback button) until they close it.
         } catch {
@@ -90,6 +136,10 @@ const FeedbackButton = () => {
         setEmail('');
         setCategory('general');
         setMailtoUrl('');
+        setGmailUrl('');
+        setEmailSubject('');
+        setEmailBody('');
+        setCopied(false);
     };
 
     return (
@@ -174,25 +224,50 @@ const FeedbackButton = () => {
                                 <CheckCircle size={40} color="var(--success)" style={{ marginBottom: '0.75rem' }} />
                                 <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Feedback Saved! 🙌</h4>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Also saved to your Feedback Inbox.</p>
-                                {mailtoUrl && (
-                                    <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={() => { window.location.href = mailtoUrl; }}
-                                        style={{
-                                            marginTop: '0.75rem',
-                                            fontSize: '0.75rem',
-                                            padding: '0.6rem 1rem',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                        }}
-                                    >
-                                        <MessageSquare size={14} />
-                                        Didn't open? Send via Email
-                                    </button>
+                                {gmailUrl && (
+                                    <>
+                                        <a
+                                            href={gmailUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-primary btn-sm"
+                                            style={{
+                                                marginTop: '0.75rem',
+                                                fontSize: '0.75rem',
+                                                padding: '0.6rem 1rem',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                width: '100%',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            <MessageSquare size={14} />
+                                            Open in Gmail (Web)
+                                        </a>
+                                        <div style={{ display: 'flex', gap: '6px', marginTop: '0.5rem' }}>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => { window.location.href = mailtoUrl; }}
+                                                style={{ flex: 1, fontSize: '0.7rem', padding: '0.5rem 0.75rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                                            >
+                                                <MessageSquare size={13} />
+                                                Email app
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={copyEmail}
+                                                style={{ flex: 1, fontSize: '0.7rem', padding: '0.5rem 0.75rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px', color: copied ? 'var(--success)' : undefined }}
+                                            >
+                                                {copied ? <CheckCircle size={13} /> : <MessageSquare size={13} />}
+                                                {copied ? 'Copied!' : 'Copy message'}
+                                            </button>
+                                        </div>
+                                    </>
                                 )}
                                 <p style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '0.6rem' }}>
-                                    Your email app should open with the message pre-filled to the developer.
+                                    On desktop, Gmail web works even without a mail app installed. The message is also saved to your Feedback Inbox.
                                 </p>
                             </div>
                         ) : (
@@ -358,7 +433,7 @@ const FeedbackButton = () => {
                                     textAlign: 'center',
                                     marginTop: '0.5rem',
                                 }}>
-                                    Your email app will open with your message pre-filled to the developer.
+                                    Mobile: your mail app opens. Desktop: Gmail web or copy the message.
                                 </p>
                             </>
                         )}
