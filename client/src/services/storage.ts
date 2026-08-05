@@ -209,13 +209,17 @@ const DEFAULT_FORM_DATA: FormData = {
     email: '',
     phone: '',
     address: '',
+    linkedin: '',
+    github: '',
+    website: '',
     summary: '',
     image: null,
     skillsRaw: '',
     experiences: [],
     educations: [],
     projects: [],
-    achievements: []
+    achievements: [],
+    customSections: []
 };
 
 function generateId(): string {

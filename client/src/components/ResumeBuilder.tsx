@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle, X } from 'lucide-react';
+import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle, X, Maximize2, Search } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -42,13 +42,17 @@ const DEFAULT_FORM_DATA: FormData = {
     email: '',
     phone: '',
     address: '',
+    linkedin: '',
+    github: '',
+    website: '',
     summary: '',
     image: null,
     skillsRaw: '',
     experiences: [],
     educations: [],
     projects: [],
-    achievements: []
+    achievements: [],
+    customSections: []
 };
 
 interface Params extends Record<string, string | string[] | undefined> {
@@ -73,7 +77,8 @@ const ResumeBuilder = () => {
         education: false,
         projects: false,
         skills: false,
-        achievements: false
+        achievements: false,
+        custom: false
     });
 
     const [errors, setErrors] = useState<ValidationErrors>({});
@@ -92,7 +97,12 @@ const ResumeBuilder = () => {
     const [showATSText, setShowATSText] = useState(false);
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
     const [pageWarningDismissed, setPageWarningDismissed] = useState(false);
+    const [previewZoom, setPreviewZoom] = useState<'fit' | '50' | '75' | '100'>('fit');
     const previewWrapRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useCallback(() => {
+        window.print();
+    }, []);
 
     // Sync dismissal preference after mount (avoids SSR hydration mismatch from
     // reading localStorage during render) and reset it when switching templates.
@@ -208,12 +218,17 @@ const ResumeBuilder = () => {
     // estimate accurate regardless of the fluid preview column width.
     useEffect(() => {
         const measure = () => {
+            const wrap = previewWrapRef.current?.parentElement as HTMLElement | null;
             const el = previewWrapRef.current?.querySelector('#resume-preview') as HTMLElement | null;
             if (!el) return;
+            // Reset zoom temporarily so the measurement is zoom-independent
+            const originalZoom = wrap?.style.zoom || '';
+            if (wrap) wrap.style.zoom = '1';
             const originalWidth = el.style.width;
             el.style.width = '794px'; // A4 width — measure at the real sheet size
             const h = el.scrollHeight;
             el.style.width = originalWidth;
+            if (wrap) wrap.style.zoom = originalZoom;
             setEstimatedPages(h / 1123);
         };
         // Wait for render + fonts, then measure
@@ -227,7 +242,7 @@ const ResumeBuilder = () => {
             clearTimeout(timer);
             ro?.disconnect();
         };
-    }, [formData, templateId, customization]);
+    }, [formData, templateId, customization, previewZoom]);
 
     // Close dropdowns on outside click
     useEffect(() => {
@@ -604,6 +619,15 @@ const ResumeBuilder = () => {
                             {/* Export buttons (ALWAYS VISIBLE) */}
                             <PDFExportButton formData={formData} templateName={template.name} />
                             <DOCXExportButton formData={formData} templateName={template.name} />
+                            {/* Print / Save as PDF */}
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={handlePrint}
+                                title="Print or save as PDF"
+                                style={{ padding: '0.35rem 0.5rem', flexShrink: 0 }}
+                            >
+                                <FileText size={14} />
+                            </button>
 
                             {/* Hidden file input for JSON import */}
                             <input
@@ -801,7 +825,7 @@ const ResumeBuilder = () => {
                 <div className="builder-right">
                     {/* One-Page Checker chip (dismissible — some resumes are meant to be longer) */}
                     {estimatedPages !== null && !(estimatedPages > 1.1 && pageWarningDismissed) && (
-                        <div style={{
+                        <div className="no-print" style={{
                             display: 'flex', alignItems: 'center', gap: '8px',
                             padding: '0.45rem 0.85rem',
                             marginBottom: '0.75rem',
@@ -840,8 +864,29 @@ const ResumeBuilder = () => {
                             )}
                         </div>
                     )}
-                    <div ref={previewWrapRef}>
-                        <ResumePreview formData={formData} templateId={templateId} customization={customization} />
+                    {/* Zoom toolbar */}
+                    <div className="preview-toolbar">
+                        <span className="preview-toolbar-label"><Search size={11} /> Zoom</span>
+                        <div className="preview-zoom-controls">
+                            {(['fit', '50', '75', '100'] as const).map(z => (
+                                <button
+                                    key={z}
+                                    className={`preview-zoom-btn${previewZoom === z ? ' active' : ''}`}
+                                    onClick={() => setPreviewZoom(z)}
+                                    title={z === 'fit' ? 'Fit to column width' : `Zoom to ${z}%`}
+                                >
+                                    {z === 'fit' ? <Maximize2 size={11} /> : `${z}%`}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div
+                        className="preview-zoom-wrap"
+                        style={previewZoom !== 'fit' ? { zoom: parseInt(previewZoom, 10) / 100 } : undefined}
+                    >
+                        <div ref={previewWrapRef}>
+                            <ResumePreview formData={formData} templateId={templateId} customization={customization} />
+                        </div>
                     </div>
                 </div>
             </div>

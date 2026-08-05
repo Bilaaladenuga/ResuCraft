@@ -154,6 +154,9 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                         {data.email && <Text style={styles.contactItem}>{data.email}</Text>}
                         {data.phone && <Text style={styles.contactItem}>{data.phone}</Text>}
                         {data.address && <Text style={styles.contactItem}>{data.address}</Text>}
+                        {data.linkedin && <Text style={styles.contactItem}>LinkedIn: {data.linkedin}</Text>}
+                        {data.github && <Text style={styles.contactItem}>GitHub: {data.github}</Text>}
+                        {data.website && <Text style={styles.contactItem}>{data.website}</Text>}
                     </View>
                 </View>
 
@@ -251,6 +254,16 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
                         ))}
                     </View>
                 )}
+
+                {/* Custom Sections */}
+                {(data.customSections || []).filter(s => s.title?.trim() && (s.items || []).some(i => i?.trim())).map((sec) => (
+                    <View key={sec.id} style={styles.section}>
+                        <Text style={styles.sectionTitle}>{sec.title}</Text>
+                        {sec.items.filter(i => i.trim()).map((item, i) => (
+                            <Text key={i} style={styles.bullet}>• {item}</Text>
+                        ))}
+                    </View>
+                ))}
 
                 {/* Footer */}
                 <Text style={styles.footer}>Generated with ResuCraft</Text>

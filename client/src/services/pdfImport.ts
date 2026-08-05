@@ -130,6 +130,29 @@ function findPhone(text: string): string {
     return match ? match[0] : '';
 }
 
+/** Find professional profile links (LinkedIn, GitHub, portfolio) */
+function findSocialLinks(text: string): { linkedin: string; github: string; website: string } {
+    const result = { linkedin: '', github: '', website: '' };
+    if (!text) return result;
+    const urlRegex = /(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com|github\.com|[\w-]+\.(?:com|org|io|dev|me|net|co|app|ai|online|site|xyz|info))\S*/gi;
+    const seen = new Set<string>();
+    let match: RegExpExecArray | null;
+    while ((match = urlRegex.exec(text)) !== null) {
+        const full = match[0].replace(/[.,;)]+$/, '');
+        if (seen.has(full)) continue;
+        seen.add(full);
+        const lower = full.toLowerCase();
+        if (lower.includes('linkedin.com') && !result.linkedin) {
+            result.linkedin = full;
+        } else if (lower.includes('github.com') && !result.github) {
+            result.github = full;
+        } else if (!result.website) {
+            result.website = full;
+        }
+    }
+    return result;
+}
+
 /** Find the name — typically the first capitalized line that isn't a header */
 function findName(lines: string[]): { firstName: string; lastName: string } {
     for (const line of lines) {
@@ -360,6 +383,7 @@ export function parseResumeText(rawText: string): Partial<FormData> {
         const t = l.trim();
         return t && !findEmail(t) && !findPhone(t) && !/^[A-Z][a-zA-Z'.\- ]+$/.test(t) && t.length < 60 && /^[A-Za-z]/.test(t);
     });
+    const social = findSocialLinks(headerText || rawText.slice(0, 1500));
 
     return {
         firstName,
@@ -368,6 +392,9 @@ export function parseResumeText(rawText: string): Partial<FormData> {
         email: findEmail(rawText),
         phone: findPhone(rawText),
         address: '',
+        linkedin: social.linkedin,
+        github: social.github,
+        website: social.website,
         summary: (sections['summary'] || '').trim(),
         image: null,
         skillsRaw: parseSkills(sections['skills'] || ''),

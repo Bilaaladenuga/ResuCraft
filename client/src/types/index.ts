@@ -31,6 +31,12 @@ export interface Achievement {
     description: string;
 }
 
+export interface CustomSection {
+    id: number;
+    title: string;
+    items: string[];
+}
+
 export interface FormData {
     firstName: string;
     lastName: string;
@@ -39,6 +45,9 @@ export interface FormData {
     email: string;
     phone: string;
     address: string;
+    linkedin: string;
+    github: string;
+    website: string;
     summary: string;
     image: string | null;
     skillsRaw: string;
@@ -46,6 +55,7 @@ export interface FormData {
     educations: Education[];
     projects: Project[];
     achievements: Achievement[];
+    customSections: CustomSection[];
 }
 
 export interface TemplateConfig {

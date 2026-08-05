@@ -1,6 +1,8 @@
 import React from 'react';
 import { FormData } from '../types';
 import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
+import SocialLinks from './SocialLinks';
+import CustomSections from './CustomSections';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -120,6 +122,7 @@ const EducationTemplate = ({ data, roleId }: Props) => {
                             {data.email && <span>{data.email}</span>}
                             {data.phone && <span>{data.phone}</span>}
                             {data.address && <span>{data.address}</span>}
+                            <SocialLinks data={data} />
                         </div>
                     </div>
                 </div>
@@ -127,6 +130,7 @@ const EducationTemplate = ({ data, roleId }: Props) => {
 
             <div className="edu-body">
                 {sectionOrder.map(cfg => renderSection(cfg))}
+                <CustomSections data={data} sectionClass="edu-section" titleClass="edu-section-title" bulletsClass="edu-bullets" />
             </div>
         </div>
     );

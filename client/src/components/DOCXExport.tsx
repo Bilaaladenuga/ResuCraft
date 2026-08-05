@@ -60,7 +60,11 @@ function createDocxDocument(data: FormData): Document {
     }
 
     // ─── Contact Info ───
-    const contactParts = [data.email, data.phone, data.address].filter(Boolean);
+    const socialParts: string[] = [];
+    if (data.linkedin?.trim()) socialParts.push(`LinkedIn: ${data.linkedin.trim()}`);
+    if (data.github?.trim()) socialParts.push(`GitHub: ${data.github.trim()}`);
+    if (data.website?.trim()) socialParts.push(data.website.trim());
+    const contactParts = [data.email, data.phone, data.address, ...socialParts].filter(Boolean);
     if (contactParts.length > 0) {
         children.push(
             new Paragraph({
@@ -300,6 +304,14 @@ function createDocxDocument(data: FormData): Document {
             );
         });
     }
+
+    // ─── CUSTOM SECTIONS ───
+    (data.customSections || [])
+        .filter(s => s.title?.trim() && (s.items || []).some(i => i?.trim()))
+        .forEach((sec) => {
+            addSection(sec.title);
+            sec.items.filter(i => i.trim()).forEach((item) => addBullet(item));
+        });
 
     return new Document({
         title: `${fullName} - Resume`,

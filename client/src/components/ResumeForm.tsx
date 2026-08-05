@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { Reorder } from 'framer-motion';
 import {
-    User, Briefcase, GraduationCap, FolderKanban, Award, Wrench,
+    User, Briefcase, GraduationCap, FolderKanban, Award, Wrench, List,
     ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical
 } from 'lucide-react';
 import { FormData, OpenSections, ValidationErrors, TouchedSections, WritingStyle } from '../types';
@@ -42,6 +42,7 @@ const sectionConfig: SectionConfig[] = [
     { id: 'projects', title: 'Projects', icon: <FolderKanban size={16} />, defaultOpen: false },
     { id: 'skills', title: 'Skills', icon: <Wrench size={16} />, defaultOpen: false },
     { id: 'achievements', title: 'Achievements', icon: <Award size={16} />, defaultOpen: false },
+    { id: 'custom', title: 'Custom Sections', icon: <List size={16} />, defaultOpen: false },
 ];
 
 interface FormInputProps {
@@ -339,6 +340,15 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         }));
     }, [setFormData]);
 
+    const updateCustomSectionItems = useCallback((id: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            customSections: (prev.customSections || []).map(s =>
+                s.id === id ? { ...s, items: value.split('\n') } : s
+            )
+        }));
+    }, [setFormData]);
+
     const renderSection = (section: SectionConfig) => {
         const isOpen = openSections[section.id];
         const hasSectionError = touched[section.id] && errors[section.id] && Object.keys(errors[section.id]).length > 0;
@@ -357,31 +367,33 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                         {hasSectionError && <AlertCircle size={12} color="var(--danger)" />}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={e => { e.stopPropagation(); generateForSection(section.id); }}
-                            disabled={isLoading}
-                            title={`AI-generate ${section.title.toLowerCase()} content`}
-                            style={{
-                                padding: '0.25rem 0.4rem',
-                                fontSize: '0.6rem',
-                                color: 'var(--accent)',
-                                opacity: isLoading ? 0.5 : 0.7,
-                                transition: 'all 0.2s',
-                                textTransform: 'none',
-                                letterSpacing: 'normal',
-                                fontWeight: 500
-                            }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}
-                        >
-                            {isLoading ? (
-                                <span className="spinner" style={{ width: '12px', height: '12px', borderWidth: '1.5px' }} />
-                            ) : (
-                                <Sparkles size={12} />
-                            )}
-                            <span style={{ marginLeft: '2px' }}>{isLoading ? 'Writing...' : 'Write for Me'}</span>
-                        </button>
+                        {section.id !== 'custom' && (
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={e => { e.stopPropagation(); generateForSection(section.id); }}
+                                disabled={isLoading}
+                                title={`AI-generate ${section.title.toLowerCase()} content`}
+                                style={{
+                                    padding: '0.25rem 0.4rem',
+                                    fontSize: '0.6rem',
+                                    color: 'var(--accent)',
+                                    opacity: isLoading ? 0.5 : 0.7,
+                                    transition: 'all 0.2s',
+                                    textTransform: 'none',
+                                    letterSpacing: 'normal',
+                                    fontWeight: 500
+                                }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}
+                            >
+                                {isLoading ? (
+                                    <span className="spinner" style={{ width: '12px', height: '12px', borderWidth: '1.5px' }} />
+                                ) : (
+                                    <Sparkles size={12} />
+                                )}
+                                <span style={{ marginLeft: '2px' }}>{isLoading ? 'Writing...' : 'Write for Me'}</span>
+                            </button>
+                        )}
                         {isOpen ? <ChevronUp size={16} color="var(--text-muted)" /> : <ChevronDown size={16} color="var(--text-muted)" />}
                     </div>
                 </div>
@@ -394,6 +406,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                         {section.id === 'projects' && renderProjectsSection()}
                         {section.id === 'skills' && renderSkillsSection()}
                         {section.id === 'achievements' && renderAchievementsSection()}
+                        {section.id === 'custom' && renderCustomSection()}
                         {writeError && (
                             <div style={{
                                 padding: '0.4rem 0.6rem',
@@ -580,6 +593,48 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                         onChange={(e) => handleChange('address', e.target.value)}
                     />
                 </FormInput>
+                {/* Professional Links */}
+                <div style={{ marginTop: '0.75rem' }}>
+                    <div style={{
+                        fontSize: '0.68rem', color: 'var(--text-muted)',
+                        textTransform: 'uppercase', letterSpacing: '1px',
+                        marginBottom: '0.5rem'
+                    }}>
+                        Professional Links (optional)
+                    </div>
+                    <div className="form-row">
+                        <FormInput label="LinkedIn" error={null} touched={false} inputId="linkedin">
+                            <input
+                                id="linkedin"
+                                name="linkedin"
+                                className="form-input"
+                                placeholder="linkedin.com/in/yourname"
+                                value={formData.linkedin || ''}
+                                onChange={(e) => handleChange('linkedin', e.target.value)}
+                            />
+                        </FormInput>
+                        <FormInput label="GitHub" error={null} touched={false} inputId="github">
+                            <input
+                                id="github"
+                                name="github"
+                                className="form-input"
+                                placeholder="github.com/yourname"
+                                value={formData.github || ''}
+                                onChange={(e) => handleChange('github', e.target.value)}
+                            />
+                        </FormInput>
+                    </div>
+                    <FormInput label="Portfolio / Website" error={null} touched={false} inputId="website">
+                        <input
+                            id="website"
+                            name="website"
+                            className="form-input"
+                            placeholder="yourwebsite.com"
+                            value={formData.website || ''}
+                            onChange={(e) => handleChange('website', e.target.value)}
+                        />
+                    </FormInput>
+                </div>
                 <FormInput label="Professional Summary" error={secErrors.summary} touched={isTouched} inputId="summary">
                     <textarea
                         id="summary"
@@ -866,6 +921,85 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                 <button className="repeater-add-btn" onClick={() => addRepeaterItem('achievements', { title: '', description: '' })}>
                     <Plus size={14} /> Add Achievement
                 </button>
+            </>
+        );
+    };
+
+    const renderCustomSection = () => {
+        const items = formData.customSections || [];
+        return (
+            <>
+                {items.length === 0 && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                        Add sections like <strong>Languages</strong>, <strong>Certifications</strong>, or <strong>Volunteering</strong> —
+                        they'll appear at the bottom of your resume in every template.
+                    </p>
+                )}
+                <Reorder.Group axis="y" values={items} onReorder={(reordered) => reorderRepeaterItems('customSections', reordered)} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map((sec) => (
+                        <Reorder.Item key={sec.id} value={sec} className="repeater-item" style={{ position: 'relative', listStyle: 'none' }}>
+                            <button className="repeater-remove-btn" onClick={() => removeRepeaterItem('customSections', sec.id)}>
+                                <X size={12} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <button
+                                    className="drag-handle"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder this section"
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        padding: '2px 0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flexShrink: 0,
+                                        transition: 'color 0.15s'
+                                    }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'; }}
+                                >
+                                    <GripVertical size={16} />
+                                </button>
+                                <div style={{ flex: 1 }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Section Title</label>
+                                        <input
+                                            className="form-input"
+                                            placeholder="e.g. Languages"
+                                            value={sec.title || ''}
+                                            onChange={(e) => updateRepeaterItem('customSections', sec.id, 'title', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                        <label className="form-label">Items (one per line)</label>
+                                        <textarea
+                                            className="form-input"
+                                            placeholder={'English — Native\nSpanish — Fluent'}
+                                            value={(sec.items || []).join('\n')}
+                                            onChange={(e) => updateCustomSectionItems(sec.id, e.target.value)}
+                                            style={{ minHeight: '70px' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.5rem' }}>
+                    <button className="repeater-add-btn" onClick={() => addRepeaterItem('customSections', { title: 'Languages', items: [] })}>
+                        <Plus size={14} /> Languages
+                    </button>
+                    <button className="repeater-add-btn" onClick={() => addRepeaterItem('customSections', { title: 'Certifications', items: [] })}>
+                        <Plus size={14} /> Certifications
+                    </button>
+                    <button className="repeater-add-btn" onClick={() => addRepeaterItem('customSections', { title: 'Volunteering', items: [] })}>
+                        <Plus size={14} /> Volunteering
+                    </button>
+                    <button className="repeater-add-btn" onClick={() => addRepeaterItem('customSections', { title: 'Custom Section', items: [] })}>
+                        <Plus size={14} /> Custom
+                    </button>
+                </div>
             </>
         );
     };

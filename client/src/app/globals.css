@@ -1533,6 +1533,72 @@ img {
     overflow-y: auto;
 }
 
+/* ---------- Preview Zoom Toolbar ---------- */
+.preview-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    padding: 0.25rem 0.4rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+}
+
+.preview-toolbar-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 0.25rem;
+}
+
+.preview-zoom-controls {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.preview-zoom-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.preview-zoom-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.preview-zoom-btn.active {
+    color: var(--secondary);
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.preview-zoom-wrap {
+    transform-origin: top left;
+}
+
+/* Social links inside template contact areas */
+.social-link {
+    display: inline-flex;
+    align-items: center;
+}
+
 /* ---------- AI Panel ---------- */
 .ai-panel {
     padding: 1.5rem;
@@ -1891,6 +1957,7 @@ img {
     .footer,
     .template-selector,
     .landing,
+    .preview-toolbar,
     .no-print {
         display: none !important;
     }
@@ -1914,6 +1981,10 @@ img {
         border-radius: 0 !important;
         box-shadow: none !important;
         min-height: auto !important;
+    }
+
+    .preview-zoom-wrap {
+        zoom: 1 !important;
     }
 }
 

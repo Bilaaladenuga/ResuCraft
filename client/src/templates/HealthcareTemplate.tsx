@@ -1,6 +1,8 @@
 import React from 'react';
 import { FormData } from '../types';
 import { getSectionOrder, SectionConfig } from '../data/roleLayouts';
+import SocialLinks from './SocialLinks';
+import CustomSections from './CustomSections';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -97,6 +99,7 @@ const HealthcareTemplate = ({ data, roleId }: Props) => {
                         {data.email && <p className="hc-sidebar-text">{data.email}</p>}
                         {data.phone && <p className="hc-sidebar-text">{data.phone}</p>}
                         {data.address && <p className="hc-sidebar-text">{data.address}</p>}
+                        <SocialLinks data={data} />
                     </div>
 
                     {skills.length > 0 && (
@@ -125,6 +128,7 @@ const HealthcareTemplate = ({ data, roleId }: Props) => {
 
                 <div className="hc-main">
                     {mainSectionOrder.map(cfg => renderSection(cfg))}
+                    <CustomSections data={data} sectionClass="hc-section" titleClass="hc-section-title" bulletsClass="hc-bullets" />
                 </div>
             </div>
         </div>

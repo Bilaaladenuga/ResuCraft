@@ -14,7 +14,12 @@ export function formDataToPlainText(data: FormData): string {
 
     if (data.designation) lines.push(data.designation);
 
-    const contact = [data.email, data.phone, data.address].filter(Boolean).join('  |  ');
+    const links: string[] = [];
+    if (data.linkedin?.trim()) links.push(data.linkedin.trim());
+    if (data.github?.trim()) links.push(data.github.trim());
+    if (data.website?.trim()) links.push(data.website.trim());
+
+    const contact = [data.email, data.phone, data.address, ...links].filter(Boolean).join('  |  ');
     if (contact) lines.push(contact);
 
     // ── Summary ──
@@ -97,6 +102,18 @@ export function formDataToPlainText(data: FormData): string {
                 lines.push(ach.description.trim());
             }
             lines.push('');
+        }
+    }
+
+    // ── Custom Sections ──
+    const customSections = data.customSections || [];
+    for (const sec of customSections) {
+        const items = (sec.items || []).map(i => i.trim()).filter(Boolean);
+        if (!sec.title?.trim() || items.length === 0) continue;
+        lines.push('');
+        lines.push(sec.title.trim().toUpperCase());
+        for (const item of items) {
+            lines.push(`- ${item}`);
         }
     }
 
