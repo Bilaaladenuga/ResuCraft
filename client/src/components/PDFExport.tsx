@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { PDFDownloadLink, Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { FormData } from '../types';

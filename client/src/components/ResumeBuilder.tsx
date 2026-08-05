@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle, X, Maximize2, Search } from 'lucide-react';
 import ResumeForm from './ResumeForm';
@@ -10,7 +11,9 @@ import SettingsModal from './SettingsModal';
 import LinkedInImportModal from './LinkedInImportModal';
 import PDFImportModal from './PDFImportModal';
 import ATSTextModal from './ATSTextModal';
-import PDFExportButton from './PDFExport';
+// PDFExportButton must be client-only — react-pdf's PDFDownloadLink is a
+// web-specific API that throws during Next.js SSR/prerendering.
+const PDFExportButton = dynamic(() => import('./PDFExport'), { ssr: false });
 import DOCXExportButton from './DOCXExport';
 import ResumeScoreModal from './ResumeScoreModal';
 import ResumeManager from './ResumeManager';
