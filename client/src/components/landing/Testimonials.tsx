@@ -65,7 +65,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({
                     <div className="section-label">Trusted by professionals</div>
                     <h2 className="section-title center">What Our Users Say</h2>
                     <p className="section-subtitle center">
-                        Real stories from people who landed their dream jobs with ResuCraft.
+                        Early users share how ResuCraft helped them build stronger, more confident applications.
                     </p>
                 </motion.div>
 

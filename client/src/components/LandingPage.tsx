@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
     Sparkles, Zap, FileText, ArrowRight, Layout, Cpu,
     CheckCircle, Search, BarChart, ShieldCheck, Globe,
-    ChevronRight, Award, Files, Sun, Moon, Users, Eye
+    Award, Files, Sun, Moon, Eye
 } from 'lucide-react';
 import ResumeManager from './ResumeManager';
 import { useTheme } from './ThemeContext';
@@ -63,20 +63,24 @@ const LandingPage = () => {
                             <Sparkles color="var(--secondary)" size={28} />
                             <span className="navbar-brand-text gradient-text">ResuCraft</span>
                         </div>
+                        <nav className="navbar-links" aria-label="Landing navigation">
+                            <a href="#features">Features</a>
+                            <a href="#templates">Templates</a>
+                            <a href="#faq">FAQ</a>
+                        </nav>
                         <div className="navbar-actions">
                             <button
-                                className="btn btn-ghost btn-sm"
+                                className="btn btn-primary btn-sm"
+                                onClick={() => router.push('/templates')}
+                                aria-label="Get Started — browse templates"
+                            >
+                                Get Started
+                            </button>
+                            <button
+                                className="btn btn-ghost btn-sm theme-toggle-btn"
                                 onClick={toggleTheme}
                                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                                 aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                                style={{
-                                    padding: '0.35rem',
-                                    color: 'var(--text-muted)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--secondary)'; }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
                             >
                                 {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                             </button>
@@ -310,7 +314,7 @@ const LandingPage = () => {
             </section>
 
             {/* AI Deep Dive Section */}
-            <section className="section">
+            <section className="section" id="features">
                 <div className="container">
                     <div className="section-label">Why it stands out</div>
                     <motion.h2
@@ -394,10 +398,10 @@ const LandingPage = () => {
 
             {/* Stats Counter */}
             <StatsCounter stats={[
-                { value: 10000, label: 'Resumes Crafted', icon: <FileText size={22} /> },
-                { value: 7, suffix: '', label: 'Industry Templates', icon: <Layout size={22} /> },
-                { value: 92, suffix: '%', label: 'ATS Pass Rate', icon: <Eye size={22} /> },
-                { value: 5000, label: 'Active Users', icon: <Users size={22} /> },
+                { value: 7, label: 'Industry Templates', icon: <Layout size={22} /> },
+                { value: 12, label: 'ATS Checks', icon: <ShieldCheck size={22} /> },
+                { value: 2, label: 'Export Formats', icon: <FileText size={22} /> },
+                { value: 100, suffix: '%', label: 'Data Stays Local', icon: <Eye size={22} /> },
             ]} />
 
             {/* Template Preview Carousel */}
@@ -422,7 +426,7 @@ const LandingPage = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                         >
-                            <img src="/assets/ai-panel-screenshot.png" alt="AI-Powered Resume Tools" className="showcase-img" loading="lazy" />
+                            <img src="/assets/ai-panel-screenshot.webp" alt="AI-Powered Resume Tools" className="showcase-img" loading="lazy" />
                             <div className="showcase-caption">AI-Powered Resume Tools</div>
                         </motion.div>
                         <motion.div
@@ -432,7 +436,7 @@ const LandingPage = () => {
                             viewport={{ once: true }}
                             transition={{ delay: 0.15 }}
                         >
-                            <img src="/assets/templates-screenshot.png" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
+                            <img src="/assets/templates-screenshot.webp" alt="Career-Focused Templates" className="showcase-img" loading="lazy" />
                             <div className="showcase-caption">Career-Focused Templates</div>
                         </motion.div>
                         <motion.div
@@ -442,7 +446,7 @@ const LandingPage = () => {
                             viewport={{ once: true }}
                             transition={{ delay: 0.3 }}
                         >
-                            <img src="/assets/coverletter-screenshot.png" alt="Cover Letter" className="showcase-img" loading="lazy" />
+                            <img src="/assets/coverletter-screenshot.webp" alt="Cover Letter" className="showcase-img" loading="lazy" />
                             <div className="showcase-caption">Cover Letter</div>
                         </motion.div>
                     </div>
@@ -459,7 +463,7 @@ const LandingPage = () => {
                 {
                     name: 'Marcus J.',
                     role: 'Software Engineer',
-                    quote: "ResuCraft's ATS optimization is a game-changer. My callback rate went from 1 in 20 to nearly 1 in 4 after restructuring my resume with their templates."
+                    quote: "ResuCraft's ATS optimization is a game-changer. After restructuring my resume with their templates, the difference in the responses I got was night and day."
                 },
                 {
                     name: 'Priya K.',
@@ -495,6 +499,44 @@ const LandingPage = () => {
                     a: 'We offer 7 professionally designed templates: Tech/IT, Finance, Healthcare, Creative/Design, Legal/Consulting, Education, and General. Each template is tailored with industry-specific layouts, headings, and styling.'
                 },
             ]} />
+
+            {/* Final CTA Band */}
+            <section className="cta-band">
+                <motion.div
+                    className="cta-band-inner"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <div className="section-label">Your move</div>
+                    <h2 className="cta-band-title">
+                        Ready to be in the <span className="gradient-text-gold">top 2%</span>?
+                    </h2>
+                    <p className="cta-band-sub">
+                        Create a recruiter-ready resume in minutes. No sign-up, no cost — your data stays on your device.
+                    </p>
+                    <div className="cta-band-actions">
+                        <button
+                            className="btn btn-primary btn-lg"
+                            onClick={() => router.push('/templates')}
+                        >
+                            Create My Resume <ArrowRight size={20} />
+                        </button>
+                        <button
+                            className="btn btn-secondary btn-lg"
+                            onClick={() => setShowResumeManager(true)}
+                        >
+                            <Files size={18} /> My Resumes
+                        </button>
+                    </div>
+                    <div className="cta-band-note">
+                        <span><CheckCircle size={14} /> Free forever</span>
+                        <span><CheckCircle size={14} /> No sign-up required</span>
+                        <span><CheckCircle size={14} /> 100% local &amp; private</span>
+                    </div>
+                </motion.div>
+            </section>
 
             {/* Footer */}
             <footer className="footer">

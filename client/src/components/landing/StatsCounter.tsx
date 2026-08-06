@@ -64,7 +64,7 @@ const AnimatedNumber = ({ value, suffix }: { value: number; suffix?: string }) =
             return k + (sfx === '%' ? '' : '+');
         }
         if (sfx === '%') return n.toLocaleString();
-        return n.toLocaleString() + '+';
+        return n.toLocaleString();
     };
 
     return (

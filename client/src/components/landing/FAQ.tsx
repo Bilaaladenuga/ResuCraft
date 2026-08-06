@@ -20,7 +20,7 @@ const FAQ: React.FC<FAQProps> = ({ items }) => {
     };
 
     return (
-        <section className="section section-faq">
+        <section className="section section-faq" id="faq">
             <div className="container">
                 <motion.div
                     className="text-center"

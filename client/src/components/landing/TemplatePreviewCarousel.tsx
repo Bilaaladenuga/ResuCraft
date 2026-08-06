@@ -143,7 +143,7 @@ const TemplatePreviewCarousel: React.FC = () => {
     };
 
     return (
-        <section className="section section-carousel">
+        <section className="section section-carousel" id="templates">
             <div className="container">
                 <motion.div
                     className="text-center"
