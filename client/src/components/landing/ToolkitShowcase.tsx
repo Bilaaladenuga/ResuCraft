@@ -40,7 +40,7 @@ const tools: ToolItem[] = [
     {
         icon: <Upload size={20} />,
         title: 'Import Any Resume',
-        description: 'Rebuild a resume from a PDF, a LinkedIn profile, or a JSON backup in seconds — zero retyping.',
+        description: 'Rebuild a resume from a PDF, a Word (.docx) file, a LinkedIn profile, or a JSON backup in seconds — zero retyping.',
         tag: 'Bring your own',
         accent: 'purple',
     },

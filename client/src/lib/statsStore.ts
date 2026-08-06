@@ -14,7 +14,9 @@ export type StatsEvent =
     | 'docx_export'
     | 'ats_check'
     | 'resume_score'
+    | 'keyword_match'
     | 'cover_letter'
+    | 'cover_letter_export'
     | 'ai_generation';
 
 export const EVENT_LABELS: Record<StatsEvent, string> = {
@@ -23,7 +25,9 @@ export const EVENT_LABELS: Record<StatsEvent, string> = {
     docx_export: 'DOCX Export',
     ats_check: 'ATS Checklist Run',
     resume_score: 'Resume Score Run',
+    keyword_match: 'Keyword Match Run',
     cover_letter: 'Cover Letter Generated',
+    cover_letter_export: 'Cover Letter Exported',
     ai_generation: 'AI Rewrite',
 };
 
@@ -82,7 +86,9 @@ export async function getPublicStats(): Promise<PublicStats> {
         docx_export: 0,
         ats_check: 0,
         resume_score: 0,
+        keyword_match: 0,
         cover_letter: 0,
+        cover_letter_export: 0,
         ai_generation: 0,
     };
 
@@ -94,7 +100,9 @@ export async function getPublicStats(): Promise<PublicStats> {
                 eventKey('docx_export'),
                 eventKey('ats_check'),
                 eventKey('resume_score'),
+                eventKey('keyword_match'),
                 eventKey('cover_letter'),
+                eventKey('cover_letter_export'),
                 eventKey('ai_generation')
             );
             const keys = Object.keys(d) as StatsEvent[];
@@ -109,8 +117,8 @@ export async function getPublicStats(): Promise<PublicStats> {
 
     return {
         resumes_created: SEEDS.resumes_created + d.resume_created,
-        exports: SEEDS.exports + d.pdf_export + d.docx_export,
-        ats_checks: SEEDS.ats_checks + d.ats_check + d.resume_score,
+        exports: SEEDS.exports + d.pdf_export + d.docx_export + d.cover_letter_export,
+        ats_checks: SEEDS.ats_checks + d.ats_check + d.resume_score + d.keyword_match,
         ai_generations: SEEDS.ai_generations + d.ai_generation + d.cover_letter,
     };
 }

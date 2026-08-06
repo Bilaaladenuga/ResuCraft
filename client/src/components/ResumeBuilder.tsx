@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search } from 'lucide-react';
+import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
 import SettingsModal from './SettingsModal';
 import LinkedInImportModal from './LinkedInImportModal';
-import PDFImportModal from './PDFImportModal';
+import FileImportModal from './FileImportModal';
 import ATSTextModal from './ATSTextModal';
 // PDFExportButton must be client-only — react-pdf's PDFDownloadLink is a
 // web-specific API that throws during Next.js SSR/prerendering.
@@ -21,6 +21,7 @@ import TemplateCustomizerModal from './TemplateCustomizerModal';
 import CoverLetterBuilder from './CoverLetterBuilder';
 import TranslateModal from './TranslateModal';
 import ATSChecklistModal from './ATSChecklistModal';
+import KeywordMatchModal from './KeywordMatchModal';
 import FeedbackInbox from './FeedbackInbox';
 import StatsPanel from './StatsPanel';
 import Onboarding from './Onboarding';
@@ -96,9 +97,11 @@ const ResumeBuilder = () => {
     const [showCoverLetter, setShowCoverLetter] = useState(false);
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
+    const [showKeywordMatch, setShowKeywordMatch] = useState(false);
     const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
     const [showStatsPanel, setShowStatsPanel] = useState(false);
     const [showPDFImport, setShowPDFImport] = useState(false);
+    const [showDOCXImport, setShowDOCXImport] = useState(false);
     const [showATSText, setShowATSText] = useState(false);
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
     const [pageWarningDismissed, setPageWarningDismissed] = useState(false);
@@ -713,6 +716,11 @@ const ResumeBuilder = () => {
                                                             <Upload size={13} /> Import PDF
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowDOCXImport(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#3b82f6' }}>
+                                                            <Upload size={13} /> Import DOCX
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowATSText(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
                                                             <Copy size={13} /> Copy as Text (ATS)
@@ -776,6 +784,11 @@ const ResumeBuilder = () => {
                                                             onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
                                                             <Shield size={13} /> ATS Checklist
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <Target size={13} /> Keyword Match
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}
@@ -971,10 +984,19 @@ const ResumeBuilder = () => {
             />
 
             {/* PDF Import Modal */}
-            <PDFImportModal
+            <FileImportModal
                 isOpen={showPDFImport}
                 onClose={() => setShowPDFImport(false)}
                 onImport={handleLinkedInImport}
+                kind="pdf"
+            />
+
+            {/* DOCX Import Modal */}
+            <FileImportModal
+                isOpen={showDOCXImport}
+                onClose={() => setShowDOCXImport(false)}
+                onImport={handleLinkedInImport}
+                kind="docx"
             />
 
             {/* ATS Text Modal */}
@@ -1022,6 +1044,14 @@ const ResumeBuilder = () => {
                 isOpen={showATSChecklist}
                 onClose={() => setShowATSChecklist(false)}
                 formData={formData}
+            />
+
+            {/* ATS Keyword Match Modal */}
+            <KeywordMatchModal
+                isOpen={showKeywordMatch}
+                onClose={() => setShowKeywordMatch(false)}
+                formData={formData}
+                setFormData={setFormData}
             />
 
             {/* Template Customizer Modal */}

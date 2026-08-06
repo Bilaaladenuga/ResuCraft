@@ -25,6 +25,7 @@ import {
     createCoverLetter
 } from '../services/storage';
 import { trackEvent } from '../services/track';
+import CoverLetterDOCXExport from './CoverLetterDOCXExport';
 
 interface CoverLetterBuilderProps {
     isOpen: boolean;
@@ -662,6 +663,14 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
                                             <Download size={13} />
                                             <span style={{ marginLeft: '3px' }}>PDF</span>
                                         </button>
+                                        <CoverLetterDOCXExport
+                                            content={clContent}
+                                            fileName={`Cover_Letter_${companyName || 'Company'}_${position || 'Role'}`}
+                                            senderName={fullName}
+                                            senderRole={position || formData.designation}
+                                            recipientName={recipientName}
+                                            companyName={companyName}
+                                        />
                                     </div>
                                 </div>
 

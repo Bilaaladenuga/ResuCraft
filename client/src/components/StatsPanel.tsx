@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, BarChart, RotateCcw, FileText, Download, Shield, Sparkles, Clock } from 'lucide-react';
+import { X, BarChart, RotateCcw, FileText, Download, Shield, Sparkles, Clock, Target } from 'lucide-react';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface ActivityEntry {
@@ -23,7 +23,9 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
     docx_export: <Download size={13} />,
     ats_check: <Shield size={13} />,
     resume_score: <Shield size={13} />,
+    keyword_match: <Target size={13} />,
     cover_letter: <FileText size={13} />,
+    cover_letter_export: <Download size={13} />,
     ai_generation: <Sparkles size={13} />,
 };
 
@@ -33,7 +35,9 @@ const EVENT_LABELS: Record<string, string> = {
     docx_export: 'DOCX exported',
     ats_check: 'ATS checklist run',
     resume_score: 'Resume score run',
+    keyword_match: 'Keyword match run',
     cover_letter: 'Cover letter generated',
+    cover_letter_export: 'Cover letter exported',
     ai_generation: 'AI rewrite used',
 };
 

@@ -1,21 +1,54 @@
 'use client';
 import React, { useState, useCallback, useRef } from 'react';
-import { FileText, X, Loader2, CheckCircle, AlertTriangle, Sparkles, Upload, Eye } from 'lucide-react';
+import { FileText, X, Loader2, CheckCircle, AlertTriangle, Sparkles, Upload, Eye, List } from 'lucide-react';
 import { extractPDFText, parseResumeText, parseResumeWithAI } from '../services/pdfImport';
+import { extractDOCXText } from '../services/docxImport';
 import { checkApiKey } from '../services/ai';
 import { FormData } from '../types';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
-interface PDFImportModalProps {
+interface FileImportModalProps {
     isOpen: boolean;
     onClose: () => void;
     onImport: (data: Partial<FormData>) => void;
+    /** 'pdf' | 'docx' — which file format this instance handles */
+    kind: 'pdf' | 'docx';
 }
 
-const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImport }) => {
-    const dialogRef = useModalAccessibility(isOpen, onClose, 'Import from PDF');
+const KIND_META = {
+    pdf: {
+        title: 'Import from PDF',
+        subtitle: 'Upload an existing resume — we\u2019ll auto-fill the form',
+        accent: '#ef4444',
+        accentBg: 'rgba(239, 68, 68, 0.1)',
+        dropText: 'Drag & drop your resume here',
+        dropHint: 'or click to browse \u00b7 PDF only',
+        accept: 'application/pdf,.pdf',
+        tip: 'Text-based PDFs import best. Scanned/image-only PDFs can\u2019t be read without OCR.',
+        processing: 'Extracting text from PDF...',
+        processingHint: 'reading pages and structuring your data',
+    },
+    docx: {
+        title: 'Import from Word (DOCX)',
+        subtitle: 'Upload a .docx resume — we\u2019ll auto-fill the form',
+        accent: '#3b82f6',
+        accentBg: 'rgba(59, 130, 246, 0.1)',
+        dropText: 'Drag & drop your resume here',
+        dropHint: 'or click to browse \u00b7 Word (.docx) only',
+        accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        tip: 'Word documents always contain real text — no OCR needed. Everything extracts cleanly.',
+        processing: 'Extracting text from Word document...',
+        processingHint: 'parsing your document and structuring your data',
+    },
+} as const;
+
+const FileImportModal: React.FC<FileImportModalProps> = ({ isOpen, onClose, onImport, kind }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, KIND_META[kind].title);
+    const meta = KIND_META[kind];
     const [step, setStep] = useState<'upload' | 'processing' | 'preview' | 'done'>('upload');
+    const [source, setSource] = useState<'file' | 'text'>('file');
     const [fileName, setFileName] = useState('');
+    const [pastedText, setPastedText] = useState('');
     const [parsedData, setParsedData] = useState<Partial<FormData> | null>(null);
     const [error, setError] = useState('');
     const [useAI, setUseAI] = useState(false);
@@ -27,17 +60,47 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
         setHasApiKey(checkApiKey());
         if (isOpen) {
             setStep('upload');
+            setSource('file');
             setFileName('');
+            setPastedText('');
             setParsedData(null);
             setError('');
         }
     }, [isOpen]);
 
+    /** Shared: run the parser (regex or AI) on any raw resume text and show the preview */
+    const parseAndPreview = useCallback(async (rawText: string, label: string) => {
+        if (!rawText || rawText.trim().length < 20) {
+            setError('Please paste at least a few lines of your resume text (name, experience, skills...).');
+            setStep('upload');
+            return;
+        }
+        setFileName(label);
+        setStep('processing');
+        setError('');
+        try {
+            const result = useAI ? await parseResumeWithAI(rawText) : parseResumeText(rawText);
+            setParsedData(result);
+            setStep('preview');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to parse the text. Please try again.');
+            setStep('upload');
+        }
+    }, [useAI]);
+
     const handleFile = useCallback(async (file: File | undefined) => {
         if (!file) return;
-        if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
-            setError('Please select a PDF file.');
-            return;
+
+        if (kind === 'pdf') {
+            if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+                setError('Please select a PDF file.');
+                return;
+            }
+        } else {
+            if (!/\.docx$/i.test(file.name)) {
+                setError('Please select a .docx (Word) file.');
+                return;
+            }
         }
 
         setFileName(file.name);
@@ -45,15 +108,33 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
         setError('');
 
         try {
-            const rawText = await extractPDFText(file);
-            const result = useAI ? await parseResumeWithAI(rawText) : parseResumeText(rawText);
-            setParsedData(result);
-            setStep('preview');
+            const rawText = kind === 'pdf'
+                ? await extractPDFText(file)
+                : await extractDOCXText(file);
+
+            if (!rawText || rawText.trim().length < 20) {
+                throw new Error(
+                    kind === 'pdf'
+                        ? 'No text could be extracted from this PDF. It may be a scanned/image-only document.'
+                        : 'No text could be extracted from this file. It may be empty or corrupt.'
+                );
+            }
+
+            await parseAndPreview(rawText, file.name);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to parse the PDF. Please try another file.');
+            const message = err instanceof Error ? err.message : `Failed to parse the ${kind.toUpperCase()}. Please try another file.`;
+            setError(message);
             setStep('upload');
+            // Scanned PDF? Jump straight to the paste tab so the user can recover.
+            if (kind === 'pdf' && message.includes('scanned')) {
+                setSource('text');
+            }
         }
-    }, [useAI]);
+    }, [kind, parseAndPreview]);
+
+    const handlePasteAnalyze = useCallback(() => {
+        parseAndPreview(pastedText, 'Pasted resume text');
+    }, [parseAndPreview, pastedText]);
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -70,7 +151,9 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
 
     const handleClose = useCallback(() => {
         setStep('upload');
+        setSource('file');
         setFileName('');
+        setPastedText('');
         setParsedData(null);
         setError('');
         onClose();
@@ -105,18 +188,18 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
                             width: '44px', height: '44px', borderRadius: '12px',
-                            background: 'rgba(239, 68, 68, 0.1)',
+                            background: meta.accentBg,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#ef4444'
+                            color: meta.accent
                         }}>
                             <FileText size={22} />
                         </div>
                         <div>
                             <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.1rem' }}>
-                                Import from PDF
+                                {meta.title}
                             </h2>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', margin: 0 }}>
-                                Upload an existing resume — we'll auto-fill the form
+                                {meta.subtitle}
                             </p>
                         </div>
                     </div>
@@ -158,37 +241,127 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
 
                 {step === 'upload' && (
                     <>
-                        {/* Drop zone */}
-                        <div
-                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                            onDragLeave={() => setDragOver(false)}
-                            onDrop={handleDrop}
-                            onClick={() => fileInputRef.current?.click()}
-                            style={{
-                                border: `2px dashed ${dragOver ? 'var(--secondary)' : 'var(--glass-border)'}`,
-                                borderRadius: 'var(--radius-md)',
-                                padding: '3rem 1.5rem',
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                                background: dragOver ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.02)',
-                                transition: 'var(--transition)'
-                            }}
-                        >
-                            <Upload size={32} color="var(--secondary)" style={{ marginBottom: '0.75rem' }} />
-                            <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                Drag & drop your resume here
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                                or click to browse · PDF only
-                            </div>
+                        {/* Source tabs: upload file OR paste text */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '0.35rem',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: 'var(--radius-sm)',
+                            padding: '0.25rem',
+                            marginBottom: '1rem'
+                        }}>
+                            <button
+                                onClick={() => { setSource('file'); setError(''); }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                    padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                                    fontSize: '0.75rem', fontWeight: 600,
+                                    background: source === 'file' ? 'var(--secondary)' : 'transparent',
+                                    color: source === 'file' ? '#000' : 'var(--text-muted)',
+                                    transition: 'var(--transition)'
+                                }}
+                            >
+                                <Upload size={13} /> Upload file
+                            </button>
+                            <button
+                                onClick={() => { setSource('text'); setError(''); }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                    padding: '0.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
+                                    fontSize: '0.75rem', fontWeight: 600,
+                                    background: source === 'text' ? 'var(--secondary)' : 'transparent',
+                                    color: source === 'text' ? '#000' : 'var(--text-muted)',
+                                    transition: 'var(--transition)'
+                                }}
+                            >
+                                <List size={13} /> Paste text
+                            </button>
                         </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="application/pdf,.pdf"
-                            onChange={(e) => handleFile(e.target.files?.[0])}
-                            style={{ display: 'none' }}
-                        />
+
+                        {source === 'file' && (
+                            <>
+                                {/* Drop zone */}
+                                <div
+                                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                                    onDragLeave={() => setDragOver(false)}
+                                    onDrop={handleDrop}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{
+                                        border: `2px dashed ${dragOver ? 'var(--secondary)' : 'var(--glass-border)'}`,
+                                        borderRadius: 'var(--radius-md)',
+                                        padding: '3rem 1.5rem',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        background: dragOver ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.02)',
+                                        transition: 'var(--transition)'
+                                    }}
+                                >
+                                    <Upload size={32} color="var(--secondary)" style={{ marginBottom: '0.75rem' }} />
+                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                        {meta.dropText}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                        {meta.dropHint}
+                                    </div>
+                                </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept={meta.accept}
+                                    onChange={(e) => handleFile(e.target.files?.[0])}
+                                    style={{ display: 'none' }}
+                                />
+
+                                <p style={{
+                                    fontSize: '0.7rem', color: 'var(--text-dim)',
+                                    marginTop: '1rem', lineHeight: 1.5
+                                }}>
+                                    <Eye size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                    Tip: {meta.tip}
+                                    {kind === 'pdf' && (
+                                        <> Scanned PDF? Switch to <strong style={{ color: 'var(--secondary)' }}>Paste text</strong> and paste your resume instead.</>
+                                    )}
+                                </p>
+                            </>
+                        )}
+
+                        {source === 'text' && (
+                            <>
+                                <div className="form-group">
+                                    <label className="form-label">Resume Text</label>
+                                    <textarea
+                                        className="form-input"
+                                        placeholder="Paste the full text of your resume here (name, contact, summary, experience, education, skills...). Great for scanned PDFs — extract the text with any OCR tool, or copy it from Google Docs, and paste it here."
+                                        value={pastedText}
+                                        onChange={(e) => setPastedText(e.target.value)}
+                                        style={{
+                                            minHeight: '200px',
+                                            fontSize: '0.8rem',
+                                            resize: 'vertical',
+                                            lineHeight: 1.6,
+                                            fontFamily: 'monospace'
+                                        }}
+                                    />
+                                </div>
+                                <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={handlePasteAnalyze}
+                                    disabled={pastedText.trim().length < 20}
+                                    style={{ width: '100%', marginTop: '0.25rem' }}
+                                >
+                                    <Sparkles size={14} /> Analyze resume text
+                                </button>
+                                <p style={{
+                                    fontSize: '0.68rem', color: 'var(--text-dim)',
+                                    marginTop: '0.6rem', lineHeight: 1.5
+                                }}>
+                                    <Eye size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                    Everything is parsed locally (or with your own AI key if the toggle above is on).
+                                </p>
+                            </>
+                        )}
 
                         {error && (
                             <div style={{
@@ -201,14 +374,6 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
                                 {error}
                             </div>
                         )}
-
-                        <p style={{
-                            fontSize: '0.7rem', color: 'var(--text-dim)',
-                            marginTop: '1rem', lineHeight: 1.5
-                        }}>
-                            <Eye size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                            Tip: Text-based PDFs import best. Scanned/image-only PDFs can't be read without OCR.
-                        </p>
                     </>
                 )}
 
@@ -219,10 +384,10 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
                     }}>
                         <Loader2 size={32} className="spin-animation" style={{ color: 'var(--secondary)' }} />
                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                            {useAI ? 'Analyzing with AI...' : 'Extracting text from PDF...'}
+                            {useAI ? 'Analyzing with AI...' : meta.processing}
                         </div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textAlign: 'center' }}>
-                            {fileName} — reading pages and structuring your data
+                            {fileName} — {source === 'file' ? meta.processingHint : 'parsing your pasted text'}
                         </div>
                     </div>
                 )}
@@ -357,7 +522,7 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
                         <CheckCircle size={44} color="var(--success)" style={{ marginBottom: '0.75rem' }} />
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Resume Imported! 🎉</h3>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '1.5rem' }}>
-                            Your form has been filled from the PDF. Review and polish before exporting.
+                            Your form has been filled from your {source === 'text' ? 'pasted resume text' : kind.toUpperCase()}. Review and polish before exporting.
                         </p>
                         <button className="btn btn-primary btn-sm" onClick={handleClose} style={{ margin: '0 auto' }}>
                             Done
@@ -369,4 +534,4 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
     );
 };
 
-export default PDFImportModal;
+export default FileImportModal;

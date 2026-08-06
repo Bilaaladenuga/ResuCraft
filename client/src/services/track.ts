@@ -11,7 +11,9 @@ export type TrackEvent =
     | 'docx_export'
     | 'ats_check'
     | 'resume_score'
+    | 'keyword_match'
     | 'cover_letter'
+    | 'cover_letter_export'
     | 'ai_generation';
 
 // Light dedupe: ignore the same event within 3 seconds.

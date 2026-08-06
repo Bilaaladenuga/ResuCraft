@@ -172,6 +172,47 @@ function findName(lines: string[]): { firstName: string; lastName: string } {
     return { firstName: '', lastName: '' };
 }
 
+// Hints used to decide which side of a "Company | Title" line is the title vs the company
+const TITLE_HINTS = /\b(engineer|developer|manager|designer|analyst|specialist|lead|officer|director|consultant|architect|coordinator|supervisor|associate|intern|head|chief|operator|technician|scientist|nurse|accountant|attorney|administrator|assistant|advisor|representative|writer|editor|researcher|instructor|teacher|professor|sales|marketing|support|recruiter|planner|strategist|qa|dev|eng|pm|accountant|auditor|underwriter|banker)\b/i;
+const COMPANY_HINTS = /\b(inc|llc|ltd|corp|co\.?|gmbh|sa|technologies?|systems?|solutions?|group|services?|labs?|limited|bank|university|college|hospital|clinic|foundation|agency|studio|media|healthcare|financial|consulting)\b/i;
+
+/**
+ * Split a "Title at Company" / "Title | Company" / "Company | Title" line
+ * into title + company, choosing the correct order with light heuristics.
+ * Unambiguous forms ("at", "@") keep title-first; pipe-separated lines
+ * are re-ordered when the hints clearly indicate which side is the title.
+ */
+function splitTitleCompany(line: string): { title: string; company: string } {
+    // Word separators ('at'/'@') need whitespace on both sides; punctuation
+    // separators (comma, pipe, dash) never have a space before them in English
+    // ("Title, Company"), so only require whitespace AFTER the separator.
+    const m = line.match(/^(.*?)\s+(at|@)\s+(.*)$/)
+        || line.match(/^(.*?)\s*([—–-]|,|\|)\s+(.*)$/);
+    if (!m) return { title: line.trim(), company: '' };
+    const left = m[1].trim();
+    const right = m[3].trim();
+    const sep = m[2];
+
+    // 'at' / '@' are unambiguous: title first
+    if (sep === 'at' || sep === '@') return { title: left, company: right };
+
+    // Pipe-separated lines can be written either way — use hints to pick the order
+    if (sep === '|') {
+        const leftIsTitle = TITLE_HINTS.test(left);
+        const rightIsTitle = TITLE_HINTS.test(right);
+        const leftIsCompany = COMPANY_HINTS.test(left);
+        const rightIsCompany = COMPANY_HINTS.test(right);
+
+        if (rightIsTitle && !leftIsTitle) return { title: right, company: left };
+        if (leftIsCompany && !rightIsCompany) return { title: right, company: left };
+        if (rightIsCompany && !leftIsCompany) return { title: left, company: right };
+        if (leftIsTitle && !rightIsTitle) return { title: left, company: right };
+    }
+
+    // Default title-first for comma / dash
+    return { title: left, company: right };
+}
+
 /** Parse experience entries from the experience section */
 function parseExperiences(sectionText: string): FormData['experiences'] {
     const entries: FormData['experiences'] = [];
@@ -202,12 +243,12 @@ function parseExperiences(sectionText: string): FormData['experiences'] {
             continue;
         }
 
-        // "Title at Company" or "Title, Company"
+        // "Title at Company" / "Title | Company" / "Company | Title" (attach company to an entry with a title)
         if (current && current.title && !current.company && line.length < 80 && !/^\d/.test(line)) {
-            const atMatch = line.match(/^(.*?)\s+(?:at|@|—|–|-|,|\|)\s+(.*)$/);
-            if (atMatch) {
-                current.title = atMatch[1].trim();
-                current.company = atMatch[2].trim();
+            const split = splitTitleCompany(line);
+            if (split.company) {
+                current.title = split.title;
+                current.company = split.company;
                 continue;
             }
         }
@@ -217,11 +258,11 @@ function parseExperiences(sectionText: string): FormData['experiences'] {
             if (current && (current.title || current.company)) {
                 entries.push(current);
             }
-            const atMatch = line.match(/^(.*?)\s+(?:at|@|—|–|-|,|\|)\s+(.*)$/);
+            const split = splitTitleCompany(line);
             current = {
                 id: entries.length + 1,
-                title: atMatch ? atMatch[1].trim() : line,
-                company: atMatch ? atMatch[2].trim() : '',
+                title: split.title || line,
+                company: split.company,
                 location: '',
                 startDate: '',
                 endDate: '',
