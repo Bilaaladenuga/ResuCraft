@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import {
     Sparkles, Zap, FileText, ArrowRight, Layout, Cpu,
     CheckCircle, Search, BarChart, ShieldCheck, Globe,
-    Award, Files, Sun, Moon, Eye
+    Award, Files, Sun, Moon
 } from 'lucide-react';
 import ResumeManager from './ResumeManager';
 import { useTheme } from './ThemeContext';
-import StatsCounter from './landing/StatsCounter';
+import ToolkitShowcase from './landing/ToolkitShowcase';
 import Testimonials from './landing/Testimonials';
 import FAQ from './landing/FAQ';
 import TemplatePreviewCarousel from './landing/TemplatePreviewCarousel';
@@ -209,7 +209,7 @@ const LandingPage = () => {
                                 <span>ATS fit</span>
                             </div>
                             <div className="hero-stat">
-                                <strong>5</strong>
+                                <strong>7</strong>
                                 <span>templates</span>
                             </div>
                             <div className="hero-stat">
@@ -241,7 +241,7 @@ const LandingPage = () => {
                             <Layout size={24} />
                         </div>
                         <h3>Industry Templates</h3>
-                        <p>Choose from 5 professionally designed templates tailored for IT, Finance, Healthcare, Creative, and General roles.</p>
+                        <p>Choose from 7 professionally designed templates tailored for Tech, Finance, Healthcare, Creative, Legal, Education, and General roles.</p>
                     </motion.div>
 
                     <motion.div className="glass-card feature-card" variants={itemVariants}>
@@ -396,13 +396,8 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* Stats Counter */}
-            <StatsCounter stats={[
-                { value: 7, label: 'Industry Templates', icon: <Layout size={22} /> },
-                { value: 12, label: 'ATS Checks', icon: <ShieldCheck size={22} /> },
-                { value: 2, label: 'Export Formats', icon: <FileText size={22} /> },
-                { value: 100, suffix: '%', label: 'Data Stays Local', icon: <Eye size={22} /> },
-            ]} />
+            {/* Toolkit Showcase — what ResuCraft does for you */}
+            <ToolkitShowcase />
 
             {/* Template Preview Carousel */}
             <TemplatePreviewCarousel />

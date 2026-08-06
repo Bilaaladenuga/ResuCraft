@@ -4,6 +4,7 @@ import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, TabSt
 import { saveAs } from 'file-saver';
 import { FormData } from '../types';
 import { FileText, Check } from 'lucide-react';
+import { trackEvent } from '../services/track';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
@@ -367,6 +368,7 @@ const DOCXExportButton: React.FC<DOCXExportButtonProps> = ({ formData, templateN
                 .join('_')
                 .replace(/[\s/]+/g, '_') + '.docx';
             saveAs(blob, fileName);
+            trackEvent('docx_export');
             setDone(true);
             setTimeout(() => setDone(false), 2500);
         } catch (err) {

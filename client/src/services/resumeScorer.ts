@@ -25,14 +25,14 @@ export interface ResumeScore {
 /**
  * Check if a string contains numbers (potential quantified achievement)
  */
-function hasNumbers(text: string): boolean {
+export function hasNumbers(text: string): boolean {
     return /[0-9]/.test(text);
 }
 
 /**
  * Check if a string is a valid email format
  */
-function isValidEmail(email: string): boolean {
+export function isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -52,7 +52,7 @@ function getAllBullets(formData: FormData): string[] {
 /**
  * Common strong action verbs for resumes
  */
-const ACTION_VERBS = [
+export const ACTION_VERBS = [
     'led', 'managed', 'developed', 'implemented', 'created', 'designed',
     'optimized', 'improved', 'delivered', 'achieved', 'launched', 'built',
     'spearheaded', 'established', 'generated', 'increased', 'reduced',

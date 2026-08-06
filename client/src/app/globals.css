@@ -1417,6 +1417,133 @@ img {
     color: var(--text-muted);
 }
 
+/* ---------- Toolkit Showcase Section ---------- */
+.section-toolkit {
+    background: linear-gradient(180deg, rgba(6, 182, 212, 0.02), rgba(245, 158, 11, 0.02));
+}
+
+.section-label.center {
+    text-align: center;
+}
+
+.toolkit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.toolkit-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem 1.5rem 1.75rem;
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+}
+
+.toolkit-card:hover {
+    border-color: var(--glass-border-hover);
+}
+
+.toolkit-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.toolkit-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--secondary);
+}
+
+.toolkit-card--gold .toolkit-card-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--secondary);
+}
+
+.toolkit-card--cyan .toolkit-card-icon {
+    background: rgba(6, 182, 212, 0.1);
+    color: var(--accent);
+}
+
+.toolkit-card--green .toolkit-card-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.toolkit-card--purple .toolkit-card-icon {
+    background: rgba(124, 58, 237, 0.12);
+    color: #a78bfa;
+}
+
+.toolkit-card-tag {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.toolkit-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.toolkit-card-desc {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.toolkit-note {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.toolkit-note span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toolkit-note svg {
+    color: var(--secondary);
+}
+
+@media (max-width: 640px) {
+    .toolkit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toolkit-note {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+    }
+}
+
 /* ---------- Showcase Section ---------- */
 .showcase-grid {
     display: grid;
@@ -1959,6 +2086,10 @@ img {
     animation: spin 0.8s linear infinite;
 }
 
+.spinner-icon {
+    animation: spin 0.8s linear infinite;
+}
+
 /* ---------- LinkedIn Import Modal ---------- */
 .linkedin-modal {
     padding: 2rem;
@@ -2391,69 +2522,6 @@ img {
 /* ============================================
    Phase 0 — Stats Counter, Testimonials, FAQ
    ============================================ */
-
-/* ---------- Stats Counter ---------- */
-.section-stats {
-    padding: 60px 0;
-    position: relative;
-    z-index: 1;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
-}
-
-.stat-card {
-    text-align: center;
-    padding: 2.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.stat-card-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--secondary);
-    margin-bottom: 0.5rem;
-}
-
-.stat-card-value {
-    font-size: 2.5rem;
-    font-weight: 900;
-    font-family: var(--font-heading);
-    background: linear-gradient(135deg, var(--secondary) 0%, #fbbf24 50%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.1;
-}
-
-.stat-counter-value {
-    font-size: inherit;
-    font-weight: inherit;
-    font-family: inherit;
-    background: inherit;
-    -webkit-background-clip: inherit;
-    -webkit-text-fill-color: inherit;
-    background-clip: inherit;
-}
-
-.stat-card-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
 
 /* ---------- Testimonials ---------- */
 .section-testimonials {
@@ -3398,22 +3466,6 @@ img {
     }
 
     /* ---------- Landing Sections Responsive ---------- */
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .stat-card {
-        padding: 1.75rem 1rem;
-    }
-
-    .stat-card-value {
-        font-size: 2rem;
-    }
-
-    .stat-card-label {
-        font-size: 0.78rem;
-    }
-
     .testimonial-card {
         padding: 2.25rem 1.5rem;
     }
@@ -3765,39 +3817,6 @@ img {
     }
 
     /* ---------- Landing Sections 480 ---------- */
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .stat-card {
-        padding: 1.5rem 1rem;
-        gap: 0.25rem;
-    }
-
-    .stat-card-value {
-        font-size: 1.75rem;
-    }
-
-    .stat-card-label {
-        font-size: 0.72rem;
-    }
-
-    .stat-card-icon {
-        width: 42px;
-        height: 42px;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-card-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .section-stats {
-        padding: 30px 0;
-    }
-
     .testimonial-card {
         padding: 1.75rem 1.25rem;
     }

@@ -2,6 +2,7 @@
 import React from 'react';
 import { PDFDownloadLink, Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { FormData } from '../types';
+import { trackEvent } from '../services/track';
 
 // No font registration needed — Helvetica is built into @react-pdf/renderer
 // Using built-in fonts avoids blank PDFs caused by external font load failures
@@ -292,6 +293,7 @@ const PDFExportButton: React.FC<PDFExportButtonProps> = ({ formData, templateNam
         >
             {({ loading }) => (
                 <div
+                    onClick={() => trackEvent('pdf_export')}
                     className={loading ? 'btn btn-primary btn-sm' : 'btn btn-accent btn-sm'}
                     style={{
                         display: 'inline-flex',

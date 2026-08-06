@@ -12,6 +12,7 @@ import {
     duplicateResume, renameResume, setActiveResumeId, getActiveResumeId
 } from '../services/storage';
 import { ResumeMeta, StoredResume } from '../types';
+import { trackEvent } from '../services/track';
 
 const TEMPLATE_NAMES: Record<string, string> = {
     tech: 'Tech / IT',
@@ -69,6 +70,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
         }
         try {
             const resume = createResume(newName.trim(), newTemplate);
+            trackEvent('resume_created');
             setActiveResumeId(resume.meta.id);
             loadResumes();
             setShowCreate(false);

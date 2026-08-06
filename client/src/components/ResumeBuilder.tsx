@@ -22,6 +22,7 @@ import CoverLetterBuilder from './CoverLetterBuilder';
 import TranslateModal from './TranslateModal';
 import ATSChecklistModal from './ATSChecklistModal';
 import FeedbackInbox from './FeedbackInbox';
+import StatsPanel from './StatsPanel';
 import Onboarding from './Onboarding';
 import { useToast } from './ToastContext';
 import { useTheme } from './ThemeContext';
@@ -35,6 +36,7 @@ import {
     getCustomization, isPageWarningDismissed, setPageWarningDismissedPref
 } from '../services/storage';
 import { validateSection, validateAllSections, hasErrors } from '../services/validation';
+import { trackEvent } from '../services/track';
 import { FormData, ValidationErrors, TouchedSections, OpenSections, ResumeMeta, TemplateCustomization, DEFAULT_CUSTOMIZATION } from '../types';
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -95,6 +97,7 @@ const ResumeBuilder = () => {
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
     const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
+    const [showStatsPanel, setShowStatsPanel] = useState(false);
     const [showPDFImport, setShowPDFImport] = useState(false);
     const [showATSText, setShowATSText] = useState(false);
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
@@ -116,6 +119,9 @@ const ResumeBuilder = () => {
     useEffect(() => {
         if (searchParams?.get('dev') === 'feedback') {
             setShowFeedbackInbox(true);
+        }
+        if (searchParams?.get('dev') === 'stats') {
+            setShowStatsPanel(true);
         }
     }, [searchParams]);
 
@@ -408,6 +414,7 @@ const ResumeBuilder = () => {
     const handleCreateNewInBuilder = () => {
         setShowResumeDropdown(false);
         const resume = createResume(`${template.name} Resume`, templateId);
+        trackEvent('resume_created');
         setActiveResumeId(resume.meta.id);
         router.push(`/builder/${templateId}?resume=${resume.meta.id}`);
     };
@@ -766,12 +773,12 @@ const ResumeBuilder = () => {
                                                             </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); }}
+                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
                                                             <Shield size={13} /> ATS Checklist
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); }}
+                                                            onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <TrendingUp size={13} /> Score
                                                         </button>
@@ -1014,6 +1021,7 @@ const ResumeBuilder = () => {
             <ATSChecklistModal
                 isOpen={showATSChecklist}
                 onClose={() => setShowATSChecklist(false)}
+                formData={formData}
             />
 
             {/* Template Customizer Modal */}
@@ -1033,6 +1041,9 @@ const ResumeBuilder = () => {
 
             {/* Feedback Inbox (dev-only — open via ?dev=feedback) */}
             <FeedbackInbox isOpen={showFeedbackInbox} onClose={() => setShowFeedbackInbox(false)} />
+
+            {/* Stats Panel (owner-only — open via ?dev=stats) */}
+            <StatsPanel isOpen={showStatsPanel} onClose={() => setShowStatsPanel(false)} />
 
             {/* First-run onboarding */}
             <Onboarding forceShow={showOnboarding} onComplete={() => setShowOnboarding(false)} />

@@ -25,6 +25,7 @@ import {
     generateFallbackRewriteBullets,
     getProviderConfig
 } from '../services/ai';
+import { trackEvent } from '../services/track';
 
 interface AIPanelProps {
     formData: FormData;
@@ -102,6 +103,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             }));
         } finally {
             setLoading(prev => ({ ...prev, summary: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -119,6 +121,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             handleAIError('Tailoring', err);
         } finally {
             setLoading(prev => ({ ...prev, tailor: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -142,6 +145,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             }, writingStyle));
         } finally {
             setLoading(prev => ({ ...prev, powerup: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -174,6 +178,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             if (fallback) setFormData(prev => ({ ...prev, skillsRaw: fallback }));
         } finally {
             setLoading(prev => ({ ...prev, skills: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -214,6 +219,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             }, writingStyle));
         } finally {
             setLoading(prev => ({ ...prev, coverletter: false }));
+            trackEvent('cover_letter');
         }
     };
 
@@ -264,6 +270,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             parseATSResult(fallback);
         } finally {
             setLoading(prev => ({ ...prev, ats: false }));
+            trackEvent('ats_check');
         }
     };
 
@@ -291,6 +298,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             }));
         } finally {
             setLoading(prev => ({ ...prev, rewriteSummary: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -343,6 +351,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             }));
         } finally {
             setLoading(prev => ({ ...prev, rewriteExp: false }));
+            trackEvent('ai_generation');
         }
     };
 
@@ -366,6 +375,7 @@ const AIPanel = ({ formData, setFormData, industry, onOpenSettings }: AIPanelPro
             handleAIError('Skills rewrite', err);
         } finally {
             setLoading(prev => ({ ...prev, rewriteSkills: false }));
+            trackEvent('ai_generation');
         }
     };
 

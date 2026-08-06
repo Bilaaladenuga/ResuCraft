@@ -24,6 +24,7 @@ import {
     deleteCoverLetter,
     createCoverLetter
 } from '../services/storage';
+import { trackEvent } from '../services/track';
 
 interface CoverLetterBuilderProps {
     isOpen: boolean;
@@ -146,6 +147,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
             }, writingStyle));
         } finally {
             setLoading(false);
+            // Count both AI and fallback generations consistently (like AIPanel)
+            trackEvent('cover_letter');
         }
     };
 

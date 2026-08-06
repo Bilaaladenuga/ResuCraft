@@ -1,140 +1,36 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, AlertTriangle, Info, FileText, Shield, Download, Layout, Type, Hash, List, Columns, BookOpen } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Info, FileText, Shield, Download, Layout, Type, Columns } from 'lucide-react';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
+import { buildATSChecklist, summarizeATSChecklist, ATSCheckItem, ATSStatus } from '../services/atsScorer';
+import { FormData } from '../types';
 
 interface ATSChecklistModalProps {
     isOpen: boolean;
     onClose: () => void;
+    formData: FormData;
 }
 
-interface ChecklistItem {
-    id: string;
-    category: string;
-    icon: React.ReactElement;
-    title: string;
-    description: string;
-    status: 'pass' | 'warning' | 'info';
-    tip: string;
-}
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+    Structure: <Columns size={16} />,
+    Layout: <Layout size={16} />,
+    Typography: <Type size={16} />,
+    Formatting: <Download size={16} />,
+    Content: <FileText size={16} />,
+};
 
-const checklistItems: ChecklistItem[] = [
-    {
-        id: 'standard-headers',
-        category: 'Structure',
-        icon: <FileText size={16} />,
-        title: 'Standard Section Headers',
-        description: 'Use traditional headers like "Experience," "Education," "Skills" — not creative alternatives',
-        status: 'pass',
-        tip: 'ATS parsers look for standard headers. "Work History" is fine, but avoid "Where I\'ve Worked"'
-    },
-    {
-        id: 'single-column',
-        category: 'Layout',
-        icon: <Layout size={16} />,
-        title: 'Single-Column Layout',
-        description: 'Avoid multi-column layouts that confuse ATS parsing algorithms',
-        status: 'pass',
-        tip: 'Multi-column layouts cause ATS to read across columns, jumbling your content. All ResuCraft templates are single-column.'
-    },
-    {
-        id: 'no-tables',
-        category: 'Layout',
-        icon: <Columns size={16} />,
-        title: 'No Tables or Text Boxes',
-        description: 'Tables and text boxes can cause ATS to skip or misread content',
-        status: 'pass',
-        tip: 'ResuCraft templates use clean div-based layouts — no tables, no text boxes.'
-    },
-    {
-        id: 'standard-fonts',
-        category: 'Typography',
-        icon: <Type size={16} />,
-        title: 'Standard Fonts',
-        description: 'Use widely-recognized fonts like Arial, Calibri, or Times New Roman',
-        status: 'warning',
-        tip: 'Stick to Arial, Calibri, Verdana, Georgia, or Times New Roman. Avoid script or decorative fonts.'
-    },
-    {
-        id: 'font-size',
-        category: 'Typography',
-        icon: <Type size={16} />,
-        title: 'Readable Font Size (10-12pt)',
-        description: 'Body text should be 10-12pt for optimal ATS readability',
-        status: 'warning',
-        tip: 'Too small (<10pt) and ATS may not read it. Too large (>12pt) and you waste valuable space.'
-    },
-    {
-        id: 'no-headers-footers',
-        category: 'Formatting',
-        icon: <BookOpen size={16} />,
-        title: 'No Headers or Footers',
-        description: 'ATS often ignores content placed in document headers and footers',
-        status: 'pass',
-        tip: 'Put your name and contact info in the main body, not the header/footer. ResuCraft does this automatically.'
-    },
-    {
-        id: 'file-format',
-        category: 'Formatting',
-        icon: <Download size={16} />,
-        title: 'Use .docx Format',
-        description: 'DOCX is the most ATS-compatible format. PDF is second-best but can vary.',
-        status: 'warning',
-        tip: 'DOCX is preferred by 90%+ of ATS systems. ResuCraft offers both DOCX and PDF export.'
-    },
-    {
-        id: 'keyword-density',
-        category: 'Content',
-        icon: <Hash size={16} />,
-        title: 'Keyword Optimization',
-        description: 'Include relevant keywords from job descriptions in your skills and experience',
-        status: 'info',
-        tip: 'Use the ATS Health Check in the AI Panel to match keywords from any job description.'
-    },
-    {
-        id: 'bullet-points',
-        category: 'Content',
-        icon: <List size={16} />,
-        title: 'Use Bullet Points, Not Paragraphs',
-        description: 'ATS-friendly resumes use bullet points for easier parsing and scoring',
-        status: 'pass',
-        tip: 'Bullet points are easier for ATS to parse and score. Keep each bullet to 1-2 lines.'
-    },
-    {
-        id: 'quantified-achievements',
-        category: 'Content',
-        icon: <AlertTriangle size={16} />,
-        title: 'Quantified Achievements',
-        description: 'Include numbers, percentages, and metrics to strengthen your content',
-        status: 'info',
-        tip: 'ATS algorithms rank resumes with quantified results higher. Use the Bullet Power-Up tool to add metrics.'
-    },
-    {
-        id: 'contact-info',
-        category: 'Structure',
-        icon: <Info size={16} />,
-        title: 'Clear Contact Information',
-        description: 'Name, phone, email, and LinkedIn should be at the very top of the resume',
-        status: 'pass',
-        tip: 'ATS needs to clearly identify your contact details. ResuCraft places these prominently at the top.'
-    },
-    {
-        id: 'skills-section',
-        category: 'Content',
-        icon: <Shield size={16} />,
-        title: 'Dedicated Skills Section',
-        description: 'Include a comma-separated skills section for optimal keyword matching',
-        status: 'info',
-        tip: 'A dedicated skills section helps ATS quickly identify your technical and professional competencies.'
-    }
-];
+const STATUS_ICONS: Record<ATSStatus, React.ReactNode> = {
+    pass: <CheckCircle size={16} color="#10b981" />,
+    warning: <AlertTriangle size={16} color="#f59e0b" />,
+    info: <Info size={16} color="#06b6d4" />,
+};
 
-const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }) => {
+const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose, formData }) => {
     const dialogRef = useModalAccessibility(isOpen, onClose, 'ATS Compatibility Checklist');
-    const passCount = checklistItems.filter(i => i.status === 'pass').length;
-    const totalCount = checklistItems.length;
-    const score = Math.round((passCount / totalCount) * 100);
+
+    const items = useMemo(() => buildATSChecklist(formData), [formData]);
+    const { score, passCount, total } = useMemo(() => summarizeATSChecklist(items), [items]);
 
     return (
         <AnimatePresence>
@@ -177,7 +73,7 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                                     <h2 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text)' }}>ATS Compatibility Checklist</h2>
                                 </div>
                                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.3rem', margin: '0.3rem 0 0' }}>
-                                    Ensure your resume passes Applicant Tracking Systems with these best practices
+                                    Live analysis of your resume — scores update as you edit
                                 </p>
                             </div>
                             <button className="btn-icon" onClick={onClose} style={{ flexShrink: 0 }}>
@@ -198,18 +94,18 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                                 width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontSize: '1rem', fontWeight: 800,
-                                background: score >= 80 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-                                color: score >= 80 ? '#10b981' : '#f59e0b',
-                                border: `2px solid ${score >= 80 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                                background: score >= 80 ? 'rgba(16, 185, 129, 0.12)' : score >= 60 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                                color: score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444',
+                                border: `2px solid ${score >= 80 ? 'rgba(16, 185, 129, 0.3)' : score >= 60 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
                             }}>
                                 {score}%
                             </div>
                             <div>
                                 <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
-                                    {score >= 80 ? 'Great ATS Foundation' : 'Room for Improvement'}
+                                    {score >= 80 ? 'Great ATS Foundation' : score >= 60 ? 'Getting There' : 'Needs Work'}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {passCount} of {totalCount} best practices met by ResuCraft templates
+                                    {passCount} of {total} checks passed by <strong>your resume</strong>
                                 </div>
                             </div>
                         </div>
@@ -220,26 +116,20 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                             overflowY: 'auto',
                             flex: 1
                         }}>
-                            {checklistItems.map((item, idx) => (
+                            {items.map((item: ATSCheckItem, idx: number) => (
                                 <div
                                     key={item.id}
                                     style={{
                                         display: 'flex',
                                         gap: '0.75rem',
                                         padding: '0.65rem 0',
-                                        borderBottom: idx < checklistItems.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                                        borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                                         alignItems: 'flex-start'
                                     }}
                                 >
                                     {/* Status icon */}
                                     <div style={{ flexShrink: 0, paddingTop: '2px' }}>
-                                        {item.status === 'pass' ? (
-                                            <CheckCircle size={16} color="#10b981" />
-                                        ) : item.status === 'warning' ? (
-                                            <AlertTriangle size={16} color="#f59e0b" />
-                                        ) : (
-                                            <Info size={16} color="#06b6d4" />
-                                        )}
+                                        {STATUS_ICONS[item.status]}
                                     </div>
 
                                     {/* Content */}
@@ -265,6 +155,7 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                                                 alignItems: 'center',
                                                 gap: '3px'
                                             }}>
+                                                {CATEGORY_ICONS[item.category]}
                                                 {item.category}
                                             </span>
                                             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)' }}>
@@ -296,7 +187,7 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                             fontSize: '0.72rem',
                             color: 'var(--text-dim)'
                         }}>
-                            ResuCraft templates are designed to pass ATS scans. Use the <strong>ATS Health Check</strong> in the AI Panel to test against specific job descriptions.
+                            This score updates live as you edit your resume. Export as <strong>DOCX</strong> for maximum ATS compatibility, with PDF as a strong second option.
                         </div>
                     </motion.div>
                 </motion.div>
