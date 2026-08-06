@@ -553,7 +553,9 @@ const LandingPage = () => {
                             <div>
                                 <h5>Product</h5>
                                 <ul>
-                                    <li onClick={() => router.push('/templates')}>Templates</li>
+                                    <li>
+                                        <a href="/templates" onClick={e => { e.preventDefault(); router.push('/templates'); }}>Templates</a>
+                                    </li>
                                     <li onClick={() => setShowResumeManager(true)}>My Resumes</li>
                                     <li onClick={() => document.getElementById('cta-create-resume')?.click()}>Get Started</li>
                                 </ul>
@@ -561,9 +563,15 @@ const LandingPage = () => {
                             <div>
                                 <h5>Company</h5>
                                 <ul>
-                                    <li>Privacy</li>
-                                    <li>Terms</li>
-                                    <li>Contact</li>
+                                    <li>
+                                        <a href="/privacy" onClick={e => { e.preventDefault(); router.push('/privacy'); }}>Privacy</a>
+                                    </li>
+                                    <li>
+                                        <a href="/terms" onClick={e => { e.preventDefault(); router.push('/terms'); }}>Terms</a>
+                                    </li>
+                                    <li>
+                                        <a href="/contact" onClick={e => { e.preventDefault(); router.push('/contact'); }}>Contact</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
