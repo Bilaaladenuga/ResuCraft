@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { X, TrendingUp } from 'lucide-react';
 import { scoreResume, ResumeScore } from '../services/resumeScorer';
 import { FormData } from '../types';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface ResumeScoreModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface ResumeScoreModalProps {
 }
 
 const ResumeScoreModal: React.FC<ResumeScoreModalProps> = ({ isOpen, onClose, formData }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Resume Score');
     const score = useMemo(() => scoreResume(formData), [formData]);
     const pct = score.maxTotal > 0 ? Math.round((score.total / score.maxTotal) * 100) : 0;
 
@@ -21,6 +23,7 @@ const ResumeScoreModal: React.FC<ResumeScoreModalProps> = ({ isOpen, onClose, fo
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div
+                ref={dialogRef}
                 className="glass-card"
                 onClick={(e) => e.stopPropagation()}
                 style={{

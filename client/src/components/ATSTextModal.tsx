@@ -4,6 +4,7 @@ import { X, Copy, FileText, Download, Check } from 'lucide-react';
 import { FormData } from '../types';
 import { formDataToPlainText, copyPlainText, downloadPlainText } from '../services/plainText';
 import { useToast } from './ToastContext';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface ATSTextModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface ATSTextModalProps {
 }
 
 const ATSTextModal: React.FC<ATSTextModalProps> = ({ isOpen, onClose, formData }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Copy as Plain Text');
     const [copied, setCopied] = useState(false);
     const { success, error } = useToast();
 
@@ -41,6 +43,7 @@ const ATSTextModal: React.FC<ATSTextModalProps> = ({ isOpen, onClose, formData }
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div
+                ref={dialogRef}
                 className="glass-card"
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '680px', width: '100%', padding: '1.75rem' }}

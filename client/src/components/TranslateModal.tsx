@@ -5,6 +5,7 @@ import { Globe, X, Sparkles, Check, AlertCircle, Loader2, ChevronDown, ChevronUp
 import { FormData, LANGUAGES, LanguageCode } from '../types';
 import { translateResumeContent, generateFallbackTranslation, checkApiKey } from '../services/ai';
 import { useToast } from './ToastContext';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface TranslateModalProps {
     isOpen: boolean;
@@ -29,6 +30,7 @@ const TranslateModal: React.FC<TranslateModalProps> = ({
     industry = '',
     onOpenSettings
 }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Translate Resume');
     const [targetLanguage, setTargetLanguage] = useState<LanguageCode>('es');
     const [isTranslating, setIsTranslating] = useState(false);
     const [translationResult, setTranslationResult] = useState<FormData | null>(null);
@@ -136,6 +138,7 @@ const TranslateModal: React.FC<TranslateModalProps> = ({
                     onClick={onClose}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal-card glass-card"
                         style={{
                             maxWidth: '560px',

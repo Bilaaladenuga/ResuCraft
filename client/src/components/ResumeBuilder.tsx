@@ -1,9 +1,8 @@
 'use client';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
-import { Sparkles, Settings, Download, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, HelpCircle, X, Maximize2, Search } from 'lucide-react';
+import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -113,6 +112,13 @@ const ResumeBuilder = () => {
         setPageWarningDismissed(isPageWarningDismissed(templateId));
     }, [templateId]);
 
+    // Dev-only access to the feedback inbox via ?dev=feedback — hidden from end users
+    useEffect(() => {
+        if (searchParams?.get('dev') === 'feedback') {
+            setShowFeedbackInbox(true);
+        }
+    }, [searchParams]);
+
     const handleDismissPageWarning = useCallback(() => {
         setPageWarningDismissed(true);
         setPageWarningDismissedPref(templateId, true);
@@ -129,6 +135,7 @@ const ResumeBuilder = () => {
     const [resumeList, setResumeList] = useState<ResumeMeta[]>([]);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState('');
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -376,7 +383,21 @@ const ResumeBuilder = () => {
         setErrors({});
         setTouched({});
         setSavedStatus('');
+        setShowClearConfirm(false);
     };
+
+    // True when the form has no content at all — used for the empty-preview hint
+    const isFormEmpty = useMemo(() => {
+        const f = formData;
+        return !(
+            f.firstName?.trim() || f.lastName?.trim() || f.designation?.trim() ||
+            f.email?.trim() || f.phone?.trim() || f.address?.trim() || f.summary?.trim() ||
+            f.skillsRaw?.trim() || f.image ||
+            (f.experiences?.length ?? 0) > 0 || (f.educations?.length ?? 0) > 0 ||
+            (f.projects?.length ?? 0) > 0 || (f.achievements?.length ?? 0) > 0 ||
+            (f.customSections?.length ?? 0) > 0
+        );
+    }, [formData]);
 
     const handleSwitchResume = (resume: ResumeMeta) => {
         setShowResumeDropdown(false);
@@ -565,72 +586,46 @@ const ResumeBuilder = () => {
                                 )}
                             </div>
 
-                            {/* Save status (auto-shown) */}
+                            {/* Save status (auto-shown, announced to screen readers) */}
                             {savedStatus && (
-                                <span style={{
-                                    fontSize: '0.6rem',
-                                    color: savedStatus === 'saved' ? 'var(--success)' :
-                                           savedStatus === 'saving' ? 'var(--text-muted)' :
-                                           savedStatus === 'error' ? 'var(--danger)' : 'var(--text-dim)',
-                                    display: 'flex', alignItems: 'center', gap: '3px',
-                                    padding: '0.2rem 0.4rem',
-                                    background: savedStatus === 'saved' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                                    borderRadius: '4px', flexShrink: 0
-                                }}>
-                                    <Save size={9} />
+                                <span
+                                    role="status"
+                                    aria-live="polite"
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        color: savedStatus === 'saved' ? 'var(--success)' :
+                                               savedStatus === 'saving' ? 'var(--text-muted)' :
+                                               savedStatus === 'error' ? 'var(--danger)' : 'var(--text-dim)',
+                                        display: 'flex', alignItems: 'center', gap: '4px',
+                                        padding: '0.25rem 0.5rem',
+                                        background: savedStatus === 'saved' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                                        borderRadius: '4px', flexShrink: 0, whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    <Save size={12} />
                                     {savedStatus === 'saving' ? 'Saving...' :
                                      savedStatus === 'saved' ? 'Saved' : 'Failed'}
                                 </span>
                             )}
 
-                            {/* Theme toggle */}
-                            <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={toggleTheme}
-                                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                                style={{ padding: '0.35rem', flexShrink: 0, color: 'var(--text-muted)' }}
-                            >
-                                {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
-                            </button>
-
                             {/* Undo / Redo (ALWAYS VISIBLE) */}
-                            <button className="btn btn-ghost btn-sm" onClick={undo} disabled={!canUndo}
+                            <button className="btn btn-ghost btn-sm navbar-icon-btn" onClick={undo} disabled={!canUndo}
                                 title="Undo (Ctrl+Z)"
-                                style={{ opacity: canUndo ? 1 : 0.3, cursor: canUndo ? 'pointer' : 'not-allowed', padding: '0.35rem', flexShrink: 0 }}>
-                                <Undo2 size={13} />
+                                aria-label="Undo"
+                                style={{ opacity: canUndo ? 1 : 0.3, cursor: canUndo ? 'pointer' : 'not-allowed', flexShrink: 0 }}>
+                                <Undo2 size={14} />
                             </button>
-                            <button className="btn btn-ghost btn-sm" onClick={redo} disabled={!canRedo}
+                            <button className="btn btn-ghost btn-sm navbar-icon-btn" onClick={redo} disabled={!canRedo}
                                 title="Redo (Ctrl+Shift+Z)"
-                                style={{ opacity: canRedo ? 1 : 0.3, cursor: canRedo ? 'pointer' : 'not-allowed', padding: '0.35rem', flexShrink: 0 }}>
-                                <Redo2 size={13} />
-                            </button>
-
-                            {/* AI Status + Settings (ALWAYS VISIBLE) */}
-                            <div className={`status-badge ${hasApiKey ? 'online' : 'offline'}`} style={{ flexShrink: 0, fontSize: '0.6rem', padding: '0.2rem 0.5rem' }}>
-                                {hasApiKey ? <ShieldCheck size={10} /> : <AlertCircle size={10} />}
-                                <span style={{ fontSize: '0.6rem' }}>{hasApiKey ? 'Ready' : 'Offline'}</span>
-                            </div>
-                            <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={() => setShowSettings(true)}
-                                title="Configure AI settings"
-                                style={{ padding: '0.35rem', flexShrink: 0, color: 'var(--secondary)' }}
-                            >
-                                <Settings size={14} />
+                                aria-label="Redo"
+                                style={{ opacity: canRedo ? 1 : 0.3, cursor: canRedo ? 'pointer' : 'not-allowed', flexShrink: 0 }}>
+                                <Redo2 size={14} />
                             </button>
 
                             {/* Export buttons (ALWAYS VISIBLE) */}
                             <PDFExportButton formData={formData} templateName={template.name} />
                             <DOCXExportButton formData={formData} templateName={template.name} />
-                            {/* Print / Save as PDF */}
-                            <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={handlePrint}
-                                title="Print or save as PDF"
-                                style={{ padding: '0.35rem 0.5rem', flexShrink: 0 }}
-                            >
-                                <FileText size={14} />
-                            </button>
 
                             {/* Hidden file input for JSON import */}
                             <input
@@ -644,10 +639,11 @@ const ResumeBuilder = () => {
                             {/* ⚡ MORE DROPDOWN (collapsible secondary actions) */}
                             <div ref={moreMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
                                 <button
-                                    className="btn btn-ghost btn-sm"
-                                    onClick={() => setShowMoreMenu(!showMoreMenu)}
+                                    className="btn btn-ghost btn-sm navbar-icon-btn"
+                                    onClick={() => { setShowClearConfirm(false); setShowMoreMenu(!showMoreMenu); }}
                                     title="More actions"
-                                    style={{ padding: '0.35rem 0.5rem' }}
+                                    aria-label="More actions"
+                                    aria-expanded={showMoreMenu}
                                 >
                                     <MoreHorizontal size={16} />
                                 </button>
@@ -667,6 +663,33 @@ const ResumeBuilder = () => {
                                         overflow: 'hidden',
                                         padding: '4px'
                                     }}>
+                                                        {/* Configure AI (with live status) */}
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <Settings size={13} />
+                                                            <span style={{ flex: 1, textAlign: 'left' }}>Configure AI</span>
+                                                            <span style={{
+                                                                fontSize: '0.7rem',
+                                                                fontWeight: 700,
+                                                                textTransform: 'uppercase',
+                                                                color: hasApiKey ? 'var(--success)' : 'var(--secondary)'
+                                                            }}>
+                                                                {hasApiKey ? 'Ready' : 'No key'}
+                                                            </span>
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); toggleTheme(); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                                                            <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); handlePrint(); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <FileText size={13} /> Print / Save as PDF
+                                                        </button>
+                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
@@ -700,11 +723,6 @@ const ResumeBuilder = () => {
                                                             onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
                                                             <Sparkles size={13} /> Restart Tutorial
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowFeedbackInbox(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <HelpCircle size={13} /> Feedback Inbox
                                                         </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
@@ -758,11 +776,36 @@ const ResumeBuilder = () => {
                                                             <TrendingUp size={13} /> Score
                                                         </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); handleClearDraft(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--danger)' }}>
-                                                            <Trash2 size={13} /> Clear Resume
-                                                        </button>
+                                                        {showClearConfirm ? (
+                                                            <div style={{
+                                                                display: 'flex', alignItems: 'center', gap: '6px',
+                                                                padding: '0.4rem 0.6rem', flexWrap: 'wrap'
+                                                            }}>
+                                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                                                                    Clear all resume data?
+                                                                </span>
+                                                                <button
+                                                                    className="btn btn-ghost btn-sm"
+                                                                    onClick={() => { setShowMoreMenu(false); handleClearDraft(); }}
+                                                                    style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 700 }}
+                                                                >
+                                                                    Yes, Clear
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-ghost btn-sm"
+                                                                    onClick={() => setShowClearConfirm(false)}
+                                                                    style={{ fontSize: '0.7rem' }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button className="btn btn-ghost btn-sm"
+                                                                onClick={() => setShowClearConfirm(true)}
+                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--danger)' }}>
+                                                                <Trash2 size={13} /> Clear Resume
+                                                            </button>
+                                                        )}
                                     </div>
                                 )}
                             </div>
@@ -826,6 +869,22 @@ const ResumeBuilder = () => {
 
                 {/* Right: Preview */}
                 <div className="builder-right">
+                    {/* Empty-state hint for new users */}
+                    {isFormEmpty && (
+                        <div className="no-print" style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '0.45rem 0.85rem',
+                            marginBottom: '0.75rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.75rem', fontWeight: 600,
+                            border: '1px solid rgba(6, 182, 212, 0.25)',
+                            background: 'rgba(6, 182, 212, 0.05)',
+                            color: 'var(--accent)'
+                        }}>
+                            <Sparkles size={13} />
+                            <span>Your live preview appears here — fill in the form and it updates instantly.</span>
+                        </div>
+                    )}
                     {/* One-Page Checker chip (dismissible — some resumes are meant to be longer) */}
                     {estimatedPages !== null && !(estimatedPages > 1.1 && pageWarningDismissed) && (
                         <div className="no-print" style={{
@@ -972,7 +1031,7 @@ const ResumeBuilder = () => {
                 onClose={() => setShowResumeManager(false)}
             />
 
-            {/* Feedback Inbox */}
+            {/* Feedback Inbox (dev-only — open via ?dev=feedback) */}
             <FeedbackInbox isOpen={showFeedbackInbox} onClose={() => setShowFeedbackInbox(false)} />
 
             {/* First-run onboarding */}

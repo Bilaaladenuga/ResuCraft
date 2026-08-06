@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import {
     Sparkles, X, Plus, Trash2, Copy, Edit3, FileText,
     AlertCircle, Check, ArrowRight, Search
@@ -30,6 +31,7 @@ interface ResumeManagerProps {
 }
 
 const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'My Resumes');
     const router = useRouter();
     const [resumes, setResumes] = useState<ResumeMeta[]>([]);
     const [loading, setLoading] = useState(true);
@@ -152,6 +154,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
                     onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal glass-card"
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}

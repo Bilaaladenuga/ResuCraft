@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Key, ExternalLink, Sparkles, Download, CheckCircle } from 'lucide-react';
 import { AI_PROVIDERS } from '../services/ai';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ const getStored = (key: string, fallback: string = ''): string => {
 };
 
 const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'AI Configuration');
     const [provider, setProvider] = useState(getStored('ai_provider', 'gemini'));
     const [geminiKey, setGeminiKey] = useState(getStored('gemini_api_key'));
     const [geminiModel, setGeminiModel] = useState(getStored('gemini_model', AI_PROVIDERS.gemini.defaultModel));
@@ -173,6 +175,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     onClick={onClose}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="glass-card"
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}

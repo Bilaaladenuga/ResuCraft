@@ -6,6 +6,7 @@ import {
     Sparkles, BookOpen, Pen, MessageSquare, Search
 } from 'lucide-react';
 import { checkResumeText, SpellCheckIssue } from '../services/spellcheckService';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 const SEVERITY_COLORS: Record<string, string> = {
     high: 'var(--danger)',
@@ -81,6 +82,7 @@ interface SpellCheckModalProps {
 }
 
 const SpellCheckModal: React.FC<SpellCheckModalProps> = ({ isOpen, onClose, formData }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Spell and Grammar Check');
     const result = useMemo(() => checkResumeText(formData), [formData]);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
     const [filterType, setFilterType] = useState<string>('all');
@@ -155,6 +157,7 @@ const SpellCheckModal: React.FC<SpellCheckModalProps> = ({ isOpen, onClose, form
                     onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal glass-card"
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}

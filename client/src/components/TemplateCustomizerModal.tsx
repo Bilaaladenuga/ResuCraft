@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, PaintBucket, Type, Check, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 import { TemplateCustomization, COLOR_PRESETS, FONT_OPTIONS, DEFAULT_CUSTOMIZATION } from '../types';
 import { saveCustomization, clearCustomization } from '../services/storage';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface TemplateCustomizerModalProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ const SPACING_OPTIONS = [
 ];
 
 const TemplateCustomizerModal = ({ isOpen, onClose, templateId, current, onApply }: TemplateCustomizerModalProps) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Template Customizer');
     const [primaryColor, setPrimaryColor] = useState(current.primaryColor || '');
     const [secondaryColor, setSecondaryColor] = useState(current.secondaryColor || '');
     const [fontFamily, setFontFamily] = useState(current.fontFamily || '');
@@ -75,6 +77,7 @@ const TemplateCustomizerModal = ({ isOpen, onClose, templateId, current, onApply
     return (
         <div className="modal-overlay" onClick={(e) => (e.target as HTMLElement) === e.currentTarget && onClose()}>
             <motion.div
+                ref={dialogRef}
                 className="glass-card modal-card"
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

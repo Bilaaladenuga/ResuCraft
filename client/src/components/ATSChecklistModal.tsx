@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertTriangle, Info, FileText, Shield, Download, Layout, Type, Hash, List, Columns, BookOpen } from 'lucide-react';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface ATSChecklistModalProps {
     isOpen: boolean;
@@ -130,6 +131,7 @@ const checklistItems: ChecklistItem[] = [
 ];
 
 const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'ATS Compatibility Checklist');
     const passCount = checklistItems.filter(i => i.status === 'pass').length;
     const totalCount = checklistItems.length;
     const score = Math.round((passCount / totalCount) * 100);
@@ -145,6 +147,7 @@ const ATSChecklistModal: React.FC<ATSChecklistModalProps> = ({ isOpen, onClose }
                     onClick={onClose}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal-content glass-card"
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}

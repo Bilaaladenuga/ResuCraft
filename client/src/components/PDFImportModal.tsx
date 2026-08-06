@@ -4,6 +4,7 @@ import { FileText, X, Loader2, CheckCircle, AlertTriangle, Sparkles, Upload, Eye
 import { extractPDFText, parseResumeText, parseResumeWithAI } from '../services/pdfImport';
 import { checkApiKey } from '../services/ai';
 import { FormData } from '../types';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface PDFImportModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface PDFImportModalProps {
 }
 
 const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImport }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Import from PDF');
     const [step, setStep] = useState<'upload' | 'processing' | 'preview' | 'done'>('upload');
     const [fileName, setFileName] = useState('');
     const [parsedData, setParsedData] = useState<Partial<FormData> | null>(null);
@@ -93,6 +95,7 @@ const PDFImportModal: React.FC<PDFImportModalProps> = ({ isOpen, onClose, onImpo
     return (
         <div className="modal-overlay" onClick={handleClose}>
             <div
+                ref={dialogRef}
                 className="glass-card linkedin-modal"
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '640px', width: '100%' }}

@@ -10,6 +10,7 @@ import CoverLetterTemplate from './CoverLetterTemplate';
 import { useToast } from './ToastContext';
 import { FormData, WritingStyle, WRITING_STYLES, SavedCoverLetter } from '../types';
 import { getSavedStyle, saveStyle } from '../services/prompts';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import {
     generateCoverLetter,
     generateFallbackCoverLetter,
@@ -39,6 +40,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
     industry,
     onOpenSettings
 }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Cover Letter Builder');
     const toastCtx = useToast();
     const fullName = [formData.firstName, formData.lastName].filter(Boolean).join(' ').trim() || 'Applicant';
 
@@ -319,6 +321,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
                     onClick={onClose}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal-card"
                         style={{
                             maxWidth: '900px',

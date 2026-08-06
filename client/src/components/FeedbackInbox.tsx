@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Trash2, AlertTriangle, Sparkles, FileText, CheckCircle, HelpCircle, Clock } from 'lucide-react';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 type FeedbackCategory = 'bug' | 'feature' | 'general';
 
@@ -39,7 +40,9 @@ interface FeedbackInboxProps {
     onClose: () => void;
 }
 
+
 const FeedbackInbox = ({ isOpen, onClose }: FeedbackInboxProps) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Feedback Inbox');
     const [entries, setEntries] = useState<FeedbackEntry[]>([]);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -106,6 +109,7 @@ const FeedbackInbox = ({ isOpen, onClose }: FeedbackInboxProps) => {
                     onClick={onClose}
                 >
                     <motion.div
+                        ref={dialogRef}
                         className="modal-container"
                         style={{ maxWidth: '620px', width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}

@@ -654,6 +654,15 @@ img {
     background: rgba(245, 158, 11, 0.08);
 }
 
+/* Icon-only buttons in the builder navbar — generous touch targets */
+.navbar-icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Anchor targets: offset for the fixed navbar */
 #features,
 #templates,

@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { Reorder } from 'framer-motion';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench, List,
-    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical
+    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical, Check
 } from 'lucide-react';
 import { FormData, OpenSections, ValidationErrors, TouchedSections, WritingStyle } from '../types';
 import { getSavedStyle } from '../services/prompts';
@@ -63,14 +63,17 @@ const FormInput: React.FC<FormInputProps> = ({ label, error, touched, inputId, c
             </label>
             {children}
             {showError && (
-                <span style={{
-                    fontSize: '0.65rem',
-                    color: 'var(--danger)',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '3px'
-                }}>
+                <span
+                    role="alert"
+                    style={{
+                        fontSize: '0.72rem',
+                        color: 'var(--danger)',
+                        marginTop: '0.25rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                    }}
+                >
                     <AlertCircle size={10} /> {error}
                 </span>
             )}
@@ -349,8 +352,30 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         }));
     }, [setFormData]);
 
+    // Completion status for each section — feeds the header badge (done / partial / empty)
+    const getSectionStatus = useCallback((sectionId: string): 'done' | 'partial' | 'empty' => {
+        const f = formData;
+        switch (sectionId) {
+            case 'about': {
+                const filled = [f.firstName, f.lastName, f.designation, f.email, f.phone, f.summary]
+                    .filter(v => v && v.trim()).length;
+                if (filled >= 4) return 'done';
+                if (filled > 0) return 'partial';
+                return 'empty';
+            }
+            case 'experience': return f.experiences?.length ? 'done' : 'empty';
+            case 'education': return f.educations?.length ? 'done' : 'empty';
+            case 'projects': return f.projects?.length ? 'done' : 'empty';
+            case 'achievements': return f.achievements?.length ? 'done' : 'empty';
+            case 'skills': return f.skillsRaw?.trim() ? 'done' : 'empty';
+            case 'custom': return f.customSections?.length ? 'done' : 'empty';
+            default: return 'empty';
+        }
+    }, [formData]);
+
     const renderSection = (section: SectionConfig) => {
         const isOpen = openSections[section.id];
+        const sectionStatus = getSectionStatus(section.id);
         const hasSectionError = touched[section.id] && errors[section.id] && Object.keys(errors[section.id]).length > 0;
         const isLoading = writeLoading === section.id;
 
@@ -362,6 +387,16 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                     style={hasSectionError ? { borderLeft: '2px solid var(--danger)' } : {}}
                 >
                     <div className="form-section-title">
+                        <span
+                            className={`section-complete ${sectionStatus}`}
+                            title={
+                                sectionStatus === 'done' ? 'Section complete' :
+                                sectionStatus === 'partial' ? 'Partially filled' :
+                                'Empty section'
+                            }
+                        >
+                            {sectionStatus === 'done' && <Check size={11} />}
+                        </span>
                         {section.icon}
                         {section.title}
                         {hasSectionError && <AlertCircle size={12} color="var(--danger)" />}

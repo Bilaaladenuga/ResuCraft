@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Linkedin, X, Loader2, CheckCircle, AlertTriangle, Sparkles, Eye, Upload } from 'lucide-react';
 import { parseLinkedInProfile, linkedInToFormData, parseWithAI } from '../services/linkedinParser';
 import { FormData } from '../types';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface LinkedInImportModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface LinkedInImportModalProps {
 }
 
 const LinkedInImportModal: React.FC<LinkedInImportModalProps> = ({ isOpen, onClose, onImport }) => {
+    const dialogRef = useModalAccessibility(isOpen, onClose, 'Import from LinkedIn');
     const [rawText, setRawText] = useState('');
     const [step, setStep] = useState<'paste' | 'preview' | 'processing' | 'done'>('paste');
     const [parsedData, setParsedData] = useState<Partial<FormData> | null>(null);
@@ -85,6 +87,7 @@ const LinkedInImportModal: React.FC<LinkedInImportModalProps> = ({ isOpen, onClo
     return (
         <div className="modal-overlay" onClick={handleClose}>
             <div
+                ref={dialogRef}
                 className="glass-card linkedin-modal"
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '620px', width: '100%' }}
