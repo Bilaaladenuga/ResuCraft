@@ -7,6 +7,7 @@
 
 export type TrackEvent =
     | 'resume_created'
+    | 'resume_example'
     | 'pdf_export'
     | 'docx_export'
     | 'ats_check'

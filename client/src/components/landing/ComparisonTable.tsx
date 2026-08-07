@@ -15,7 +15,7 @@ const ROWS: ComparisonRow[] = [
     {
         aspect: 'Formatting',
         traditional: 'Spend hours wrestling with Word margins and fonts',
-        resucraft: 'Real-time preview with 7 professionally designed templates',
+        resucraft: 'Real-time preview with 15 professionally designed templates',
         highlight: true,
     },
     {

@@ -304,6 +304,27 @@ export function createResume(name: string, templateId: string): StoredResume {
     return resume;
 }
 
+/** Create a resume pre-filled with given form data (used by the Examples Library). */
+export function createResumeWithData(name: string, templateId: string, formData: FormData): StoredResume {
+    const now = new Date().toISOString();
+    const meta: ResumeMeta = {
+        id: generateId(),
+        name,
+        templateId,
+        createdAt: now,
+        updatedAt: now
+    };
+    const resume: StoredResume = {
+        meta,
+        formData: JSON.parse(JSON.stringify(formData)) // Deep clone so edits never mutate the example
+    };
+    localStorage.setItem(RESUME_KEY(meta.id), JSON.stringify(resume));
+    const index = getResumeIndex();
+    index.push(meta);
+    saveResumeIndex(index);
+    return resume;
+}
+
 export function deleteResume(id: string): void {
     try {
         localStorage.removeItem(RESUME_KEY(id));

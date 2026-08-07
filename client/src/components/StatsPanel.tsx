@@ -19,6 +19,7 @@ interface StatsData {
 
 const EVENT_ICONS: Record<string, React.ReactNode> = {
     resume_created: <FileText size={13} />,
+    resume_example: <FileText size={13} />,
     pdf_export: <Download size={13} />,
     docx_export: <Download size={13} />,
     ats_check: <Shield size={13} />,
@@ -31,6 +32,7 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
 
 const EVENT_LABELS: Record<string, string> = {
     resume_created: 'Resume created',
+    resume_example: 'Resume started from example',
     pdf_export: 'PDF exported',
     docx_export: 'DOCX exported',
     ats_check: 'ATS checklist run',

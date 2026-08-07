@@ -63,6 +63,8 @@ export interface TemplateConfig {
     name: string;
     component: React.ComponentType<{ data: FormData; roleId?: string }>;
     industry: string;
+    /** Suggested job roles this template is designed for (shown on cards) */
+    roles?: string[];
 }
 
 export interface OpenSections {

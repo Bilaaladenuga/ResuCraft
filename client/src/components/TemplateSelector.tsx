@@ -1,8 +1,10 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Code, DollarSign, Heart, Palette, FileText, Scale, BookOpen, ArrowLeft } from 'lucide-react';
+import { Sparkles, Code, DollarSign, Heart, Palette, FileText, Scale, BookOpen, ArrowLeft, List, Award, Zap, TrendingUp, BarChart, Wrench, Star, Briefcase, BookOpen as BookIcon } from 'lucide-react';
+import ResumeExamplesModal from './ResumeExamplesModal';
+import { getAllTemplates } from '../templates';
 
 const pageTransition = {
     initial: { opacity: 0, y: 20 },
@@ -91,11 +93,96 @@ const templates: TemplateCard[] = [
         bgGradient: 'linear-gradient(135deg, #1f0d0d, #3a1a1a)',
         badge: 'New',
         atsTag: 'optimized'
+    },
+    {
+        id: 'minimal',
+        name: 'Minimal',
+        icon: <List size={24} />,
+        description: 'Ultra-clean, whitespace-first layout that works for any industry. Perfect for modern, understated professional brands.',
+        color: '#94a3b8',
+        bgGradient: 'linear-gradient(135deg, #1e293b, #334155)',
+        badge: 'New',
+        atsTag: 'premium'
+    },
+    {
+        id: 'executive',
+        name: 'Executive',
+        icon: <Award size={24} />,
+        description: 'Sophisticated serif design for senior leaders, C-suite, and consultants. Timeless typography with refined accents.',
+        color: '#d4af37',
+        bgGradient: 'linear-gradient(135deg, #1a1507, #2d2000)',
+        badge: 'Premium',
+        atsTag: 'premium'
+    },
+    {
+        id: 'modern',
+        name: 'Modern',
+        icon: <Zap size={24} />,
+        description: 'Contemporary bold-header layout with a sleek accent bar. A forward-looking choice for fast-growing industries.',
+        color: '#22d3ee',
+        bgGradient: 'linear-gradient(135deg, #0e1628, #123a4a)',
+        badge: 'New',
+        atsTag: 'optimized'
+    },
+    {
+        id: 'marketing',
+        name: 'Marketing / Sales',
+        icon: <TrendingUp size={24} />,
+        description: 'Results-first design that puts campaign wins and metrics front and center. Built for marketers, sales, and growth roles.',
+        color: '#f97316',
+        bgGradient: 'linear-gradient(135deg, #2b1005, #431603)',
+        badge: 'Popular',
+        atsTag: 'optimized'
+    },
+    {
+        id: 'data',
+        name: 'Data & ML',
+        icon: <BarChart size={24} />,
+        description: 'Analytical layout for data scientists, analysts, and ML engineers. Metric-driven with a technical skills grid.',
+        color: '#2dd4bf',
+        bgGradient: 'linear-gradient(135deg, #042f2e, #134e4a)',
+        badge: 'New',
+        atsTag: 'optimized'
+    },
+    {
+        id: 'engineering',
+        name: 'Engineering',
+        icon: <Wrench size={24} />,
+        description: 'Structured technical layout for mechanical, civil, electrical, and manufacturing engineers. Skills-grid focused.',
+        color: '#60a5fa',
+        bgGradient: 'linear-gradient(135deg, #0f172a, #1d3a8f)',
+        badge: 'New',
+        atsTag: 'optimized'
+    },
+    {
+        id: 'hospitality',
+        name: 'Hospitality / Retail',
+        icon: <Star size={24} />,
+        description: 'Warm, personable layout for hospitality, retail, and customer-facing roles. Approachable with a friendly profile.',
+        color: '#f97316',
+        bgGradient: 'linear-gradient(135deg, #2b0f07, #4a1a0a)',
+        badge: 'New',
+        atsTag: 'optimized'
+    },
+    {
+        id: 'admin',
+        name: 'Administrative',
+        icon: <Briefcase size={24} />,
+        description: 'Clean, organized layout for administrative, HR, and office support roles. Reliable structure with simple clarity.',
+        color: '#94a3b8',
+        bgGradient: 'linear-gradient(135deg, #111827, #293241)',
+        badge: 'ATS Optimized',
+        atsTag: 'premium'
     }
 ];
 
 const TemplateSelector = () => {
     const router = useRouter();
+    const [showExamples, setShowExamples] = useState(false);
+
+    const rolesByTemplate = Object.fromEntries(
+        getAllTemplates().map(t => [t.id, t.roles || []])
+    );
 
     const handleSelect = (templateId: string) => {
         router.push(`/builder/${templateId}`);
@@ -131,39 +218,70 @@ const TemplateSelector = () => {
                     </p>
                 </motion.div>
 
+                <motion.div
+                    className="examples-banner glass-card"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                    <div className="examples-banner-icon">
+                        <BookIcon size={22} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>Short on time? Start from a sample resume</h3>
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            Browse 10 professionally written resumes by role — engineer, nurse, lawyer, designer and more — then make it yours.
+                        </p>
+                    </div>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowExamples(true)} style={{ whiteSpace: 'nowrap' }}>
+                        <BookIcon size={14} /> Browse Examples
+                    </button>
+                </motion.div>
+
                 <div className="template-grid">
-                    {templates.map((tmpl, index) => (
-                        <motion.div
-                            key={tmpl.id}
-                            className="glass-card template-card"
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4, delay: index * 0.1 }}
-                            onClick={() => handleSelect(tmpl.id)}
-                            id={`template-card-${tmpl.id}`}
-                        >
+                    {templates.map((tmpl, index) => {
+                        const cardRoles = rolesByTemplate[tmpl.id] || [];
+                        const visibleRoles = cardRoles.slice(0, 6);
+                        const extraRoles = cardRoles.length - visibleRoles.length;
+                        return (
+                            <motion.div
+                                key={tmpl.id}
+                                className="glass-card template-card"
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: index * 0.1 }}
+                                onClick={() => handleSelect(tmpl.id)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        handleSelect(tmpl.id);
+                                    }
+                                }}
+                                id={`template-card-${tmpl.id}`}
+                            >
                             <div
                                 className="template-card-preview"
                                 style={{ background: tmpl.bgGradient }}
                             >
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: '100%',
-                                    color: tmpl.color
-                                }}>
-                                    {React.cloneElement(tmpl.icon as React.ReactElement<{ size?: number }>, { size: 48 })}
+                                {/* Landscape mini resume-page mockup */}
+                                <div className="template-card-page">
+                                    <div className="template-card-page-header" style={{ background: tmpl.color }}>
+                                        <div className="template-card-page-icon">
+                                            {React.cloneElement(tmpl.icon as React.ReactElement<{ size?: number }>, { size: 16 })}
+                                        </div>
+                                        <div className="template-card-page-title" />
+                                    </div>
+                                    <div className="template-card-page-body">
+                                        <div className="template-card-page-line template-card-page-line--title" style={{ background: tmpl.color }} />
+                                        <div className="template-card-page-line" />
+                                        <div className="template-card-page-line template-card-page-line--short" />
+                                        <div className="template-card-page-line" />
+                                        <div className="template-card-page-line template-card-page-line--short" />
+                                    </div>
                                 </div>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    right: '10px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '4px',
-                                    alignItems: 'flex-end'
-                                }}>
+                                <div className="template-card-flags">
                                     {tmpl.badge && (
                                         <span
                                             className="template-card-badge"
@@ -178,13 +296,8 @@ const TemplateSelector = () => {
                                     )}
                                     {tmpl.atsTag && (
                                         <span
+                                            className="template-card-ats"
                                             style={{
-                                                fontSize: '0.55rem',
-                                                fontWeight: 700,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.06em',
-                                                padding: '2px 7px',
-                                                borderRadius: '100px',
                                                 background: tmpl.atsTag === 'premium'
                                                     ? 'rgba(16, 185, 129, 0.15)'
                                                     : 'rgba(99, 102, 241, 0.12)',
@@ -201,14 +314,30 @@ const TemplateSelector = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="template-card-info">
-                                <h3>{tmpl.name}</h3>
-                                <p>{tmpl.description}</p>
-                            </div>
-                        </motion.div>
-                    ))}
+                                <div className="template-card-info">
+                                    <div className="template-card-info-top">
+                                        <h3>{tmpl.name}</h3>
+                                        <span className="template-card-arrow" aria-hidden="true">→</span>
+                                    </div>
+                                    <p>{tmpl.description}</p>
+                                    {cardRoles.length > 0 && (
+                                        <div className="template-card-roles">
+                                            <span className="template-card-roles-label">For:</span>
+                                            {visibleRoles.map(role => (
+                                                <span key={role} className="template-card-role-tag">{role}</span>
+                                            ))}
+                                            {extraRoles > 0 && (
+                                                <span className="template-card-role-tag template-card-role-tag--more">+{extraRoles} more</span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </div>
+            <ResumeExamplesModal isOpen={showExamples} onClose={() => setShowExamples(false)} />
         </motion.div>
     );
 };

@@ -15,6 +15,14 @@ const templateNames: Record<string, string> = {
     general: 'General',
     legal: 'Legal / Consulting',
     education: 'Education',
+    minimal: 'Minimal',
+    executive: 'Executive',
+    modern: 'Modern',
+    marketing: 'Marketing / Sales',
+    data: 'Data & ML',
+    engineering: 'Engineering',
+    hospitality: 'Hospitality / Retail',
+    admin: 'Administrative',
 };
 
 const templateDescriptions: Record<string, string> = {
@@ -25,6 +33,14 @@ const templateDescriptions: Record<string, string> = {
     general: 'Classic ATS-friendly layout suitable for any industry or role.',
     legal: 'Authoritative law firm layout for attorneys, paralegals, and consultants.',
     education: 'Scholarly academic layout for teachers, professors, and researchers.',
+    minimal: 'Ultra-clean, whitespace-first layout that works for any industry.',
+    executive: 'Sophisticated serif design for senior leaders, C-suite, and consultants.',
+    modern: 'Contemporary bold-header layout with a sleek accent bar.',
+    marketing: 'Results-first design built for marketers, sales, and growth roles.',
+    data: 'Analytical layout for data scientists, analysts, and ML engineers.',
+    engineering: 'Structured technical layout for mechanical, civil, and electrical engineers.',
+    hospitality: 'Warm, personable layout for hospitality, retail, and customer-facing roles.',
+    admin: 'Clean, organized layout for administrative, HR, and office support roles.',
 };
 
 export async function generateMetadata({ params }: BuilderPageParams): Promise<Metadata> {

@@ -10,6 +10,7 @@ import { Redis } from '@upstash/redis';
 
 export type StatsEvent =
     | 'resume_created'
+    | 'resume_example'
     | 'pdf_export'
     | 'docx_export'
     | 'ats_check'
@@ -21,6 +22,7 @@ export type StatsEvent =
 
 export const EVENT_LABELS: Record<StatsEvent, string> = {
     resume_created: 'Resume Created',
+    resume_example: 'Resume Started From Example',
     pdf_export: 'PDF Export',
     docx_export: 'DOCX Export',
     ats_check: 'ATS Checklist Run',
@@ -82,6 +84,7 @@ export interface PublicStats {
 export async function getPublicStats(): Promise<PublicStats> {
     const d = {
         resume_created: 0,
+        resume_example: 0,
         pdf_export: 0,
         docx_export: 0,
         ats_check: 0,
@@ -96,6 +99,7 @@ export async function getPublicStats(): Promise<PublicStats> {
         try {
             const vals = await redis.mget(
                 eventKey('resume_created'),
+                eventKey('resume_example'),
                 eventKey('pdf_export'),
                 eventKey('docx_export'),
                 eventKey('ats_check'),
@@ -116,7 +120,7 @@ export async function getPublicStats(): Promise<PublicStats> {
     }
 
     return {
-        resumes_created: SEEDS.resumes_created + d.resume_created,
+        resumes_created: SEEDS.resumes_created + d.resume_created + d.resume_example,
         exports: SEEDS.exports + d.pdf_export + d.docx_export + d.cover_letter_export,
         ats_checks: SEEDS.ats_checks + d.ats_check + d.resume_score + d.keyword_match,
         ai_generations: SEEDS.ai_generations + d.ai_generation + d.cover_letter,

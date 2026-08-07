@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import {
     Sparkles, X, Plus, Trash2, Copy, Edit3, FileText,
-    AlertCircle, Check, ArrowRight, Search
+    AlertCircle, Check, ArrowRight, Search, BookOpen
 } from 'lucide-react';
 import {
     getResumeIndex, getResumeById, createResume, deleteResume,
@@ -13,6 +13,7 @@ import {
 } from '../services/storage';
 import { ResumeMeta, StoredResume } from '../types';
 import { trackEvent } from '../services/track';
+import ResumeExamplesModal from './ResumeExamplesModal';
 
 const TEMPLATE_NAMES: Record<string, string> = {
     tech: 'Tech / IT',
@@ -21,10 +22,18 @@ const TEMPLATE_NAMES: Record<string, string> = {
     creative: 'Creative / Design',
     general: 'General',
     legal: 'Legal / Consulting',
-    education: 'Education'
+    education: 'Education',
+    minimal: 'Minimal',
+    executive: 'Executive',
+    modern: 'Modern',
+    marketing: 'Marketing / Sales',
+    data: 'Data & ML',
+    engineering: 'Engineering',
+    hospitality: 'Hospitality / Retail',
+    admin: 'Administrative'
 };
 
-const TEMPLATE_IDS = ['general', 'tech', 'finance', 'healthcare', 'creative', 'legal', 'education'];
+const TEMPLATE_IDS = ['general', 'tech', 'finance', 'healthcare', 'creative', 'legal', 'education', 'minimal', 'executive', 'modern', 'marketing', 'data', 'engineering', 'hospitality', 'admin'];
 
 interface ResumeManagerProps {
     isOpen: boolean;
@@ -44,6 +53,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
+    const [showExamples, setShowExamples] = useState(false);
 
     const loadResumes = useCallback(() => {
         setLoading(true);
@@ -245,6 +255,14 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
                             >
                                 <Plus size={14} /> New Resume
                             </button>
+                            <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => setShowExamples(true)}
+                                style={{ whiteSpace: 'nowrap' }}
+                                title="Start from a professionally written sample"
+                            >
+                                <BookOpen size={14} /> Examples
+                            </button>
                         </div>
 
                         {/* Create form */}
@@ -352,13 +370,20 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
                                         {searchQuery ? 'No resumes match your search.' : 'You haven\'t created any resumes yet.'}
                                     </p>
                                     {!searchQuery && (
-                                        <button
-                                            className="btn btn-primary btn-sm"
-                                            onClick={() => { setShowCreate(true); setError(''); }}
-                                            style={{ marginTop: '1rem' }}
-                                        >
-                                            <Plus size={14} /> Create Your First Resume
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => { setShowCreate(true); setError(''); }}
+                                            >
+                                                <Plus size={14} /> Create Your First Resume
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => setShowExamples(true)}
+                                            >
+                                                <BookOpen size={14} /> Start From an Example
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ) : (
@@ -532,6 +557,7 @@ const ResumeManager: React.FC<ResumeManagerProps> = ({ isOpen, onClose }) => {
                     </motion.div>
                 </motion.div>
             )}
+            <ResumeExamplesModal isOpen={showExamples} onClose={() => setShowExamples(false)} />
         </AnimatePresence>
     );
 };

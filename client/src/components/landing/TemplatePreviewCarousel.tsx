@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getAllTemplates } from '../../templates';
 
 interface TemplatePreview {
     id: string;
@@ -77,6 +78,78 @@ const TEMPLATES: TemplatePreview[] = [
         description: 'Academic-focused layout with publications, grants, and research.',
         highlight: 'Academic focus · Grants & research · Publications',
         features: ['Publications Section', 'Grants & Awards', 'Teaching Experience', 'Research Areas']
+    },
+    {
+        id: 'minimal',
+        name: 'Minimal',
+        industry: 'universal',
+        accent: '#94a3b8',
+        description: 'Whitespace-first design with centered typography and hairline rules.',
+        highlight: 'Clean whitespace · Centered name · Understated',
+        features: ['Centered Header', 'Hairline Dividers', 'Letter-Spaced Headings', 'ATS Premium']
+    },
+    {
+        id: 'executive',
+        name: 'Executive',
+        industry: 'leadership',
+        accent: '#d4af37',
+        description: 'Timeless serif layout with refined gold accents for senior leaders.',
+        highlight: 'Serif typography · Gold accents · Authoritative',
+        features: ['Executive Profile', 'Key Accomplishments', 'Leadership Competencies', 'Elegant Styling']
+    },
+    {
+        id: 'modern',
+        name: 'Modern',
+        industry: 'contemporary',
+        accent: '#22d3ee',
+        description: 'Bold dark header with a bright accent bar and chip-based skills.',
+        highlight: 'Bold header · Accent bar · Chip skills',
+        features: ['Dark Accent Header', 'Side Rule Sections', 'Skill Chips', 'Contemporary Look']
+    },
+    {
+        id: 'marketing',
+        name: 'Marketing / Sales',
+        industry: 'marketing',
+        accent: '#f97316',
+        description: 'Results-first design with campaign metrics and achievement stars.',
+        highlight: 'Results focus · Star bullets · Monogram',
+        features: ['Campaign Results', 'Result Bullets', 'Skill Chips', 'Monogram Branding']
+    },
+    {
+        id: 'data',
+        name: 'Data & ML',
+        industry: 'data & ml',
+        accent: '#2dd4bf',
+        description: 'Analytics-focused teal layout with monospace skill chips, divider-heavy entries, and metric strips.',
+        highlight: 'Monospace chips · Metric strips · Project cards',
+        features: ['Monospace Skill Chips', 'Metric Achievement Strips', 'Project Cards', 'Dashed Dividers']
+    },
+    {
+        id: 'engineering',
+        name: 'Engineering',
+        industry: 'engineering',
+        accent: '#60a5fa',
+        description: 'Structured blue layout for technical and manufacturing engineers.',
+        highlight: 'Structured grid · Blue accents · Technical',
+        features: ['Skills Grid', 'Systems Projects', 'Certifications', 'Technical Clarity']
+    },
+    {
+        id: 'hospitality',
+        name: 'Hospitality / Retail',
+        industry: 'hospitality',
+        accent: '#f97316',
+        description: 'Warm, personable design with a circular avatar and rounded chips.',
+        highlight: 'Warm tone · Avatar circle · Friendly',
+        features: ['Profile Avatar', 'Service Highlights', 'Rounded Chips', 'Personable Tone']
+    },
+    {
+        id: 'admin',
+        name: 'Administrative',
+        industry: 'administration',
+        accent: '#94a3b8',
+        description: 'Clean, organized layout built for office, HR, and admin roles.',
+        highlight: 'Clean rules · Simple clarity · Reliable',
+        features: ['ATS Ready Badge', 'Clean Sections', 'Simple Structure', 'Universal Use']
     }
 ];
 
@@ -154,7 +227,7 @@ const TemplatePreviewCarousel: React.FC = () => {
                     <div className="section-label">Pick your style</div>
                     <h2 className="section-title center">Browse Industry Templates</h2>
                     <p className="section-subtitle center">
-                        7 professionally designed templates — each tailored for a specific industry.
+                        15 professionally designed templates — each tailored for a specific industry or style.
                     </p>
                 </motion.div>
 
@@ -201,6 +274,12 @@ const TemplatePreviewCarousel: React.FC = () => {
                                         {t.industry}
                                     </p>
                                     <p className="carousel-description">{t.description}</p>
+
+                                    <div className="carousel-roles">
+                                        {(getAllTemplates().find(x => x.id === t.id)?.roles || []).slice(0, 6).map(role => (
+                                            <span key={role} className="carousel-role-tag">{role}</span>
+                                        ))}
+                                    </div>
 
                                     <div className="carousel-highlight">
                                         <span className="carousel-highlight-label">Key features:</span>
