@@ -1,4 +1,5 @@
 'use client';
+// v1 ORIGINAL chip-based role selector (restored) - searchable picker removed
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, ChevronDown, ChevronUp, Briefcase, Wand2 } from 'lucide-react';
