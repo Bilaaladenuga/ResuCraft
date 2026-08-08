@@ -2,10 +2,12 @@ import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react'
 import { Reorder } from 'framer-motion';
 import {
     User, Briefcase, GraduationCap, FolderKanban, Award, Wrench, List,
-    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical, Check
+    ChevronDown, ChevronUp, Plus, X, Image as ImageIcon, AlertCircle, Sparkles, GripVertical, Check, Wand2, Loader2, RotateCcw, Upload, Trash2
 } from 'lucide-react';
 import { FormData, OpenSections, ValidationErrors, TouchedSections, WritingStyle } from '../types';
 import { getSavedStyle } from '../services/prompts';
+import { improveBullet, improveAllBullets, BulletSuggestion } from '../services/bulletImprover';
+import { useToast } from './ToastContext';
 import {
     checkApiKey,
     generateSummary,
@@ -100,10 +102,144 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
     const [quickFillLoading, setQuickFillLoading] = useState(false);
     const [hasApiKey, setHasApiKey] = useState(false);
     const [writingStyle, setWritingStyle] = useState<WritingStyle>('professional');
+    const toastCtx = useToast();
+
+    // ---- Bullet Improver state ----
+    const [bulletPreview, setBulletPreview] = useState<{
+        expId: number;
+        index: number;
+        suggestion: BulletSuggestion | null;
+        selected: number;
+        loading: boolean;
+    } | null>(null);
+    const [improveAllId, setImproveAllId] = useState<number | null>(null);
+
     useEffect(() => {
         setHasApiKey(checkApiKey());
         setWritingStyle(getSavedStyle());
     }, []);
+
+    // ---- Bullet Improver helpers ----
+    const splitBullets = useCallback((description: string): string[] => {
+        const lines = (description || '').split('\n');
+        return lines.length > 0 ? lines : [''];
+    }, []);
+
+    const updateBulletLine = useCallback((expId: number, index: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            experiences: (prev.experiences || []).map(exp =>
+                exp.id === expId
+                    ? { ...exp, description: splitBullets(exp.description).map((l, i) => (i === index ? value : l)).join('\n') }
+                    : exp
+            )
+        }));
+    }, [setFormData, splitBullets]);
+
+    const addBullet = useCallback((expId: number) => {
+        setFormData(prev => ({
+            ...prev,
+            experiences: (prev.experiences || []).map(exp => {
+                if (exp.id !== expId) return exp;
+                const lines = splitBullets(exp.description);
+                lines.push('');
+                return { ...exp, description: lines.join('\n') };
+            })
+        }));
+    }, [setFormData, splitBullets]);
+
+    const removeBullet = useCallback((expId: number, index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            experiences: (prev.experiences || []).map(exp => {
+                if (exp.id !== expId) return exp;
+                const lines = splitBullets(exp.description).filter((_, i) => i !== index);
+                return { ...exp, description: lines.join('\n') };
+            })
+        }));
+        // Removing any bullet shifts line indices — clear the preview for this
+        // experience so "Use this" never targets the wrong line.
+        setBulletPreview(prev => (prev && prev.expId === expId ? null : prev));
+    }, [setFormData, splitBullets]);
+
+    const handleImprove = useCallback(async (expId: number, index: number, line: string) => {
+        if (!line.trim()) return;
+        setBulletPreview({ expId, index, suggestion: null, selected: 0, loading: true });
+        try {
+            const suggestion = await improveBullet(line, {
+                role: formData.designation || '',
+                industry,
+                hasApiKey,
+                style: writingStyle,
+            });
+            setBulletPreview(prev =>
+                prev && prev.expId === expId && prev.index === index
+                    ? { ...prev, suggestion, loading: false }
+                    : prev
+            );
+        } catch (err) {
+            // Defensive — improveBullet never throws (AI failures fall back to local),
+            // but if it ever does we must not leave the spinner stuck.
+            console.error('Bullet improvement failed:', err);
+            setBulletPreview(null);
+        }
+    }, [formData.designation, industry, hasApiKey, writingStyle]);
+
+    const cycleSuggestion = useCallback(() => {
+        setBulletPreview(prev => {
+            if (!prev || !prev.suggestion) return prev;
+            const total = 1 + prev.suggestion.alternatives.length;
+            return { ...prev, selected: (prev.selected + 1) % total };
+        });
+    }, []);
+
+    const handleAccept = useCallback((expId: number, index: number) => {
+        if (!bulletPreview || !bulletPreview.suggestion) return;
+        const text = bulletPreview.selected === 0
+            ? bulletPreview.suggestion.improved
+            : bulletPreview.suggestion.alternatives[bulletPreview.selected - 1];
+        if (text) {
+            setFormData(f => ({
+                ...f,
+                experiences: (f.experiences || []).map(exp =>
+                    exp.id === expId
+                        ? { ...exp, description: splitBullets(exp.description).map((l, i) => (i === index ? text : l)).join('\n') }
+                        : exp
+                )
+            }));
+            toastCtx.success('Bullet improved ✨');
+        }
+        setBulletPreview(null);
+    }, [bulletPreview, setFormData, splitBullets, toastCtx]);
+
+    const handleDiscardPreview = useCallback(() => {
+        setBulletPreview(null);
+    }, []);
+
+    const handleImproveAll = useCallback(async (expId: number) => {
+        const exp = formData.experiences?.find(e => e.id === expId);
+        if (!exp || !exp.description?.trim()) return;
+        setImproveAllId(expId);
+        setBulletPreview(null);
+        try {
+            const improved = await improveAllBullets(exp.description, {
+                role: formData.designation || '',
+                industry,
+                hasApiKey,
+                style: writingStyle,
+            });
+            setFormData(prev => ({
+                ...prev,
+                experiences: (prev.experiences || []).map(e => (e.id === expId ? { ...e, description: improved } : e))
+            }));
+            toastCtx.success('All bullets improved ✨');
+        } catch (err) {
+            console.error('Improve all failed:', err);
+            toastCtx.error('Could not improve bullets — please try again');
+        } finally {
+            setImproveAllId(null);
+        }
+    }, [formData.experiences, formData.designation, industry, hasApiKey, writingStyle, setFormData, toastCtx]);
 
     const generateForSection = useCallback(async (sectionId: string) => {
         setWriteLoading(sectionId);
@@ -307,9 +443,18 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
         const reader = new FileReader();
         reader.onloadend = () => {
             handleChange('image', reader.result as string);
+            // Reset the input so the SAME file can be re-selected (replace photo)
+            if (fileInputRef.current) fileInputRef.current.value = '';
         };
         reader.readAsDataURL(file);
     }, [handleChange]);
+
+    const handleRemoveImage = useCallback(() => {
+        setFormData(prev => ({ ...prev, image: null }));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setImageError('');
+        toastCtx.success('Photo removed');
+    }, [setFormData, toastCtx]);
 
     // Reorder helper for drag & drop
     const reorderRepeaterItems = useCallback((field: string, reordered: any[]) => {
@@ -568,19 +713,65 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                     </FormInput>
                     <div className="form-group">
                         <label className="form-label" htmlFor="profilePhoto">Profile Photo</label>
-                        <div style={{ position: 'relative' }}>
-                            <input
-                                ref={fileInputRef}
-                                id="profilePhoto"
-                                name="profilePhoto"
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                onChange={handleImageUpload}
-                                className="form-input"
-                                style={{ paddingLeft: '2.5rem' }}
-                            />
-                            <ImageIcon size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
-                        </div>
+                        {formData.image ? (
+                            <div className="photo-uploader">
+                                <div className="photo-preview-wrap">
+                                    <img src={formData.image} alt="Profile preview" className="photo-preview" />
+                                    <button
+                                        type="button"
+                                        className="photo-remove-btn"
+                                        onClick={handleRemoveImage}
+                                        title="Remove photo"
+                                        aria-label="Remove profile photo"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                                <div className="photo-uploader-actions">
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{ fontSize: '0.7rem', padding: '0.3rem 0.55rem' }}
+                                    >
+                                        <Upload size={12} /> Change photo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={handleRemoveImage}
+                                        style={{ fontSize: '0.7rem', padding: '0.3rem 0.55rem', color: 'var(--danger)' }}
+                                    >
+                                        <Trash2 size={12} /> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="photo-uploader">
+                                <div className="photo-uploader-empty">
+                                    <ImageIcon size={16} style={{ color: 'var(--text-dim)' }} />
+                                    <span>No photo yet</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost btn-sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{ fontSize: '0.7rem', padding: '0.3rem 0.55rem' }}
+                                >
+                                    <Upload size={12} /> Upload photo
+                                </button>
+                            </div>
+                        )}
+                        {/* Hidden file input — always mounted so Change/Upload can re-trigger it */}
+                        <input
+                            ref={fileInputRef}
+                            id="profilePhoto"
+                            name="profilePhoto"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }}
+                        />
                         {imageError && (
                             <span style={{
                                 fontSize: '0.65rem',
@@ -745,7 +936,93 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ formData, setFormData, openSect
                                     </div>
                                     <div className="form-group" style={{ marginTop: '0.75rem' }}>
                                         <label className="form-label">Description (one bullet per line)</label>
-                                        <textarea className="form-input" placeholder="Managed a team of 5 engineers..." value={exp.description || ''} onChange={(e) => updateRepeaterItem('experiences', exp.id, 'description', e.target.value)} style={{ minHeight: '80px' }} />
+                                        <div className="bullet-editor">
+                                            {splitBullets(exp.description).map((line, idx) => {
+                                                const isPreviewing = bulletPreview?.expId === exp.id && bulletPreview.index === idx;
+                                                const currentText = isPreviewing && bulletPreview.suggestion
+                                                    ? (bulletPreview.selected === 0
+                                                        ? bulletPreview.suggestion.improved
+                                                        : bulletPreview.suggestion.alternatives[bulletPreview.selected - 1])
+                                                    : '';
+                                                return (
+                                                    <div key={idx}>
+                                                        <div className={`bullet-row${isPreviewing ? ' is-previewing' : ''}`}>
+                                                            <span className="bullet-row-marker">•</span>
+                                                            <input
+                                                                className="form-input bullet-row-input"
+                                                                placeholder="Managed a team of 5 engineers..."
+                                                                value={line}
+                                                                onChange={(e) => updateBulletLine(exp.id, idx, e.target.value)}
+                                                            />
+                                                            <button
+                                                                className="bullet-row-btn"
+                                                                onClick={() => handleImprove(exp.id, idx, line)}
+                                                                disabled={improveAllId === exp.id || !line.trim()}
+                                                                title={line.trim() ? 'Improve this bullet' : 'Type a bullet first'}
+                                                            >
+                                                                {isPreviewing && bulletPreview?.loading ? (
+                                                                    <Loader2 size={13} className="bullet-spin" />
+                                                                ) : (
+                                                                    <Wand2 size={13} />
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                className="bullet-row-btn bullet-row-btn-danger"
+                                                                onClick={() => removeBullet(exp.id, idx)}
+                                                                title="Remove this bullet"
+                                                                disabled={improveAllId === exp.id}
+                                                            >
+                                                                <X size={13} />
+                                                            </button>
+                                                        </div>
+
+                                                        {isPreviewing && bulletPreview && !bulletPreview.loading && bulletPreview.suggestion && (
+                                                            <div className="bullet-preview">
+                                                                <div className="bullet-preview-head">
+                                                                    <Sparkles size={11} style={{ color: 'var(--secondary)' }} />
+                                                                    <span>Suggestion {bulletPreview.selected + 1} of {1 + bulletPreview.suggestion.alternatives.length}</span>
+                                                                </div>
+                                                                <div className="bullet-preview-text">{currentText}</div>
+                                                                {bulletPreview.suggestion.tips.length > 0 && (
+                                                                    <div className="bullet-preview-tips">
+                                                                        {bulletPreview.suggestion.tips.map((tip, ti) => (
+                                                                            <span key={ti}>💡 {tip}</span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                                <div className="bullet-preview-actions">
+                                                                    <button className="btn btn-primary btn-sm" onClick={() => handleAccept(exp.id, idx)}>
+                                                                        <Check size={12} /> Use this
+                                                                    </button>
+                                                                    {1 + bulletPreview.suggestion.alternatives.length > 1 && (
+                                                                        <button className="btn btn-ghost btn-sm" onClick={cycleSuggestion}>
+                                                                            <RotateCcw size={12} /> Try another
+                                                                        </button>
+                                                                    )}
+                                                                    <button className="btn btn-ghost btn-sm" onClick={handleDiscardPreview}>
+                                                                        Discard
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                            <div className="bullet-editor-footer">
+                                                <button className="repeater-add-btn bullet-add-btn" onClick={() => addBullet(exp.id)} disabled={improveAllId === exp.id}>
+                                                    <Plus size={14} /> Add Bullet
+                                                </button>
+                                                <button
+                                                    className="btn btn-ghost btn-sm bullet-improve-all"
+                                                    onClick={() => handleImproveAll(exp.id)}
+                                                    disabled={improveAllId === exp.id || !exp.description?.trim()}
+                                                    title={exp.description?.trim() ? 'Improve every bullet in this role' : 'Add a bullet first'}
+                                                >
+                                                    {improveAllId === exp.id ? <Loader2 size={12} className="bullet-spin" /> : <Wand2 size={12} />}
+                                                    {improveAllId === exp.id ? 'Improving…' : 'Improve all'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

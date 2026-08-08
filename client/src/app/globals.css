@@ -538,6 +538,226 @@ img {
     background: rgba(245, 158, 11, 0.05);
 }
 
+/* ---------- Bullet Editor (per-bullet improve) ---------- */
+.bullet-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.bullet-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.4rem;
+    background: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.bullet-row:hover {
+    border-color: var(--glass-border-hover);
+}
+
+.bullet-row.is-previewing {
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.04);
+}
+
+.bullet-row-marker {
+    color: var(--secondary);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.bullet-row-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 0.45rem 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.bullet-row-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.bullet-row-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    border: none;
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bullet-row-btn:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.25);
+    transform: scale(1.08);
+}
+
+.bullet-row-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.bullet-row-btn-danger {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+}
+
+.bullet-row-btn-danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.bullet-preview {
+    margin: 0.35rem 0 0.5rem 1.1rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-sm);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.bullet-preview-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--secondary);
+    margin-bottom: 0.35rem;
+}
+
+.bullet-preview-text {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.bullet-preview-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.bullet-preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+}
+
+.bullet-editor-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bullet-add-btn {
+    flex: 1;
+    padding: 0.45rem;
+    font-size: 0.75rem;
+}
+
+.bullet-improve-all {
+    flex-shrink: 0;
+    color: var(--secondary);
+    white-space: nowrap;
+}
+
+.bullet-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ---------- Profile Photo Uploader ---------- */
+.photo-uploader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    transition: border-color 0.15s ease;
+    flex-wrap: wrap;
+}
+
+.photo-uploader:hover {
+    border-color: var(--glass-border-hover);
+}
+
+.photo-preview-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.photo-preview {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(245, 158, 11, 0.45);
+    display: block;
+}
+
+.photo-remove-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--surface);
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.photo-remove-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: scale(1.1);
+}
+
+.photo-uploader-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.photo-uploader-empty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    flex: 1;
+}
+
 /* ---------- Modal ---------- */
 .modal-overlay {
     position: fixed;
