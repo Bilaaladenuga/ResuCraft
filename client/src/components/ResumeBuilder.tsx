@@ -142,6 +142,7 @@ const ResumeBuilder = () => {
     const [customization, setCustomization] = useState<TemplateCustomization>(DEFAULT_CUSTOMIZATION);
     const [showResumeDropdown, setShowResumeDropdown] = useState(false);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
+    const [moreTab, setMoreTab] = useState<'ai' | 'files' | 'ats' | 'style'>('ai');
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [resumeList, setResumeList] = useState<ResumeMeta[]>([]);
     const [isRenaming, setIsRenaming] = useState(false);
@@ -463,7 +464,7 @@ const ResumeBuilder = () => {
                             <span className="navbar-brand-text gradient-text">ResuCraft</span>
                         </div>
 
-                        <div className="navbar-actions" style={{ gap: '6px' }}>
+                        <div className="navbar-actions">
                             {/* Resume selector dropdown (ALWAYS VISIBLE) */}
                             <div ref={dropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
                                 <button
@@ -675,196 +676,157 @@ const ResumeBuilder = () => {
                                         top: '100%',
                                         right: 0,
                                         marginTop: '4px',
-                                        minWidth: '200px',
+                                        width: '292px',
+                                        maxWidth: 'calc(100vw - 16px)',
                                         background: 'var(--bg-dropdown)',
                                         border: '1px solid rgba(245, 158, 11, 0.15)',
-                                        borderRadius: 'var(--radius-sm)',
+                                        borderRadius: 'var(--radius-md)',
                                         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
                                         zIndex: 200,
-                                        overflowY: 'auto',
-                                        overflowX: 'hidden',
-                                        maxHeight: 'min(72vh, 560px)',
-                                        padding: '4px'
+                                        overflow: 'hidden',
+                                        padding: '0'
                                     }}>
-                                                        {/* ===== Share (top) ===== */}
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowShare(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <Share2 size={13} /> Share Resume
-                                                        </button>
-                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+                                        {/* Pinned: Share Resume */}
+                                        <button className="more-share-btn" onClick={() => { setShowMoreMenu(false); setShowShare(true); }}>
+                                            <Share2 size={14} />
+                                            <span style={{ flex: 1, textAlign: 'left' }}>Share Resume</span>
+                                            <span className="more-share-hint">Link + QR</span>
+                                        </button>
 
-                                                        {/* ===== AI & Writing ===== */}
-                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.45rem 0.6rem 0.15rem' }}>
-                                                            AI & Writing
-                                                        </div>
-                                                        {/* Configure AI (with live status) */}
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <Settings size={13} />
-                                                            <span style={{ flex: 1, textAlign: 'left' }}>Configure AI</span>
-                                                            <span style={{
-                                                                fontSize: '0.7rem',
-                                                                fontWeight: 700,
-                                                                textTransform: 'uppercase',
-                                                                color: hasApiKey ? 'var(--success)' : 'var(--secondary)'
-                                                            }}>
-                                                                {hasApiKey ? 'Ready' : 'No key'}
-                                                            </span>
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
-                                                            <FileText size={13} /> Cover Letter
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
-                                                            <Globe size={13} /> Translate
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <Sparkles size={13} /> Restart Tutorial
-                                                        </button>
+                                        {/* Category tabs */}
+                                        <div className="more-tabs" role="tablist" aria-label="Tool categories">
+                                            {([
+                                                { id: 'ai', label: 'AI', icon: <Sparkles size={11} /> },
+                                                { id: 'files', label: 'Files', icon: <Upload size={11} /> },
+                                                { id: 'ats', label: 'ATS', icon: <Shield size={11} /> },
+                                                { id: 'style', label: 'Style', icon: <PaintBucket size={11} /> },
+                                            ] as const).map(t => (
+                                                <button
+                                                    key={t.id}
+                                                    role="tab"
+                                                    id={`more-tab-${t.id}`}
+                                                    aria-controls={`more-panel-${t.id}`}
+                                                    aria-selected={moreTab === t.id}
+                                                    className={`more-tab${moreTab === t.id ? ' active' : ''}`}
+                                                    onClick={() => setMoreTab(t.id)}
+                                                >
+                                                    {t.icon}
+                                                    {t.label}
+                                                </button>
+                                            ))}
+                                        </div>
 
-                                                        {/* ===== Import / Export ===== */}
-                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
-                                                            Import / Export
-                                                        </div>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowLinkedInModal(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#0a66c2' }}>
-                                                            <Linkedin size={13} /> LinkedIn Import
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowPDFImport(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#ef4444' }}>
-                                                            <Upload size={13} /> Import PDF
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowDOCXImport(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#3b82f6' }}>
-                                                            <Upload size={13} /> Import DOCX
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowATSText(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
-                                                            <Copy size={13} /> Copy as Text (ATS)
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <Upload size={13} /> Import JSON
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); handleExportJSON(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <Save size={13} /> Export JSON
-                                                        </button>
+                                        {/* Tab content */}
+                                        <div className="more-tab-content" role="tabpanel" aria-labelledby={`more-tab-${moreTab}`}>
+                                            {moreTab === 'ai' && (<>
+                                                {/* Configure AI (with live status) */}
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}>
+                                                    <Settings size={13} />
+                                                    <span style={{ flex: 1, textAlign: 'left' }}>Configure AI</span>
+                                                    <span className="more-item-badge" style={{ color: hasApiKey ? 'var(--success)' : 'var(--secondary)' }}>
+                                                        {hasApiKey ? 'Ready' : 'No key'}
+                                                    </span>
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}>
+                                                    <FileText size={13} /> Cover Letter
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}>
+                                                    <Globe size={13} /> Translate
+                                                </button>
+                                            </>)}
 
-                                                        {/* ===== ATS Tools ===== */}
-                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
-                                                            ATS Tools
-                                                        </div>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
-                                                            <Shield size={13} /> ATS Checklist
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <Target size={13} /> Keyword Match
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <TrendingUp size={13} /> Score
-                                                        </button>
+                                            {moreTab === 'files' && (<>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowLinkedInModal(true); }}>
+                                                    <Linkedin size={13} /> LinkedIn Import
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowPDFImport(true); }}>
+                                                    <Upload size={13} /> Import PDF
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowDOCXImport(true); }}>
+                                                    <Upload size={13} /> Import DOCX
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSText(true); }}>
+                                                    <Copy size={13} /> Copy as Text (ATS)
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}>
+                                                    <Upload size={13} /> Import JSON
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleExportJSON(); }}>
+                                                    <Save size={13} /> Export JSON
+                                                </button>
+                                            </>)}
 
-                                                        {/* ===== Checks & Appearance ===== */}
-                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
-                                                            Checks & Appearance
-                                                        </div>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); handleValidateAll(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <ShieldCheck size={13} /> Validate
+                                            {moreTab === 'ats' && (<>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}>
+                                                    <Shield size={13} /> ATS Checklist
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}>
+                                                    <Target size={13} /> Keyword Match
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}>
+                                                    <TrendingUp size={13} /> Score
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleValidateAll(); }}>
+                                                    <ShieldCheck size={13} /> Validate
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}>
+                                                    <BookOpen size={13} /> Spell Check
+                                                </button>
+                                            </>)}
+
+                                            {moreTab === 'style' && (<>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }}>
+                                                    <PaintBucket size={13} /> Customize
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); toggleTheme(); }}>
+                                                    {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                                                    <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                                                </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handlePrint(); }}>
+                                                    <FileText size={13} /> Print / Save as PDF
+                                                </button>
+                                                <button className="more-item"
+                                                    onClick={() => {
+                                                        setShowMoreMenu(false);
+                                                        if (pageWarningDismissed) { handleRestorePageWarning(); } else { handleDismissPageWarning(); }
+                                                    }}
+                                                    title={pageWarningDismissed ? 'Show the one-page warning again' : 'Hide the one-page warning'}
+                                                >
+                                                    <ShieldCheck size={13} />
+                                                    <span style={{ flex: 1, textAlign: 'left' }}>One-Page Warning</span>
+                                                    <Check size={12} color={pageWarningDismissed ? 'var(--text-dim)' : 'var(--success)'} />
+                                                </button>
+                                            </>)}
+                                        </div>
+
+                                        {/* Pinned footer */}
+                                        <div className="more-footer">
+                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}>
+                                                <Sparkles size={13} /> Restart Tutorial
+                                            </button>
+                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}>
+                                                <ArrowLeft size={13} /> Templates
+                                            </button>
+                                            <div className="more-footer-divider" />
+                                            {showClearConfirm ? (
+                                                <div className="more-clear-confirm">
+                                                    <span>Clear all resume data?</span>
+                                                    <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
+                                                        <button className="btn btn-ghost btn-sm" onClick={() => { setShowMoreMenu(false); handleClearDraft(); }}
+                                                            style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 700 }}>
+                                                            Yes, Clear
                                                         </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <BookOpen size={13} /> Spell Check
+                                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowClearConfirm(false)} style={{ fontSize: '0.7rem' }}>
+                                                            Cancel
                                                         </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => {
-                                                                setShowMoreMenu(false);
-                                                                if (pageWarningDismissed) {
-                                                                    handleRestorePageWarning();
-                                                                } else {
-                                                                    handleDismissPageWarning();
-                                                                }
-                                                            }}
-                                                            title={pageWarningDismissed ? 'Show the one-page warning again' : 'Hide the one-page warning'}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <ShieldCheck size={13} />
-                                                            <span style={{ flex: 1 }}>One-Page Warning</span>
-                                                            <Check size={12} color={pageWarningDismissed ? 'var(--text-dim)' : 'var(--success)'} />
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); toggleTheme(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
-                                                            <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <PaintBucket size={13} /> Customize
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); handlePrint(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <FileText size={13} /> Print / Save as PDF
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <ArrowLeft size={13} /> Templates
-                                                        </button>
-                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
-                                                        {showClearConfirm ? (
-                                                            <div style={{
-                                                                display: 'flex', alignItems: 'center', gap: '6px',
-                                                                padding: '0.4rem 0.6rem', flexWrap: 'wrap'
-                                                            }}>
-                                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                                                                    Clear all resume data?
-                                                                </span>
-                                                                <button
-                                                                    className="btn btn-ghost btn-sm"
-                                                                    onClick={() => { setShowMoreMenu(false); handleClearDraft(); }}
-                                                                    style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 700 }}
-                                                                >
-                                                                    Yes, Clear
-                                                                </button>
-                                                                <button
-                                                                    className="btn btn-ghost btn-sm"
-                                                                    onClick={() => setShowClearConfirm(false)}
-                                                                    style={{ fontSize: '0.7rem' }}
-                                                                >
-                                                                    Cancel
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <button className="btn btn-ghost btn-sm"
-                                                                onClick={() => setShowClearConfirm(true)}
-                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--danger)' }}>
-                                                                <Trash2 size={13} /> Clear Resume
-                                                            </button>
-                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button className="more-item more-item-danger" onClick={() => setShowClearConfirm(true)}>
+                                                    <Trash2 size={13} /> Clear Resume
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>

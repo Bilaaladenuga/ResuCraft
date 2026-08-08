@@ -987,6 +987,12 @@ img {
     .navbar-links {
         display: none;
     }
+
+    /* ui-ux-pro-max: touch targets must be >= 44px on mobile */
+    .navbar-icon-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 
 .status-badge {
@@ -4966,4 +4972,87 @@ img {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+/* ============================================
+   Tabbed More launcher (builder ⋮ dropdown)
+   ============================================ */
+.more-share-btn {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 0.55rem 0.7rem;
+    background: rgba(245, 158, 11, 0.14);
+    border: none; border-bottom: 1px solid rgba(245, 158, 11, 0.22);
+    color: var(--secondary); font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; font-family: var(--font-body);
+    transition: background 0.15s, color 0.15s;
+}
+.more-share-btn:hover { background: rgba(245, 158, 11, 0.24); }
+.more-share-hint {
+    font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-dim); background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2px 8px; white-space: nowrap;
+}
+.more-tabs {
+    display: flex; gap: 2px; padding: 6px 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.more-tab {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 0.5rem 0.2rem; background: transparent; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    border-radius: 6px 6px 0 0; color: var(--text-dim);
+    font-size: 0.68rem; font-weight: 600; cursor: pointer; font-family: var(--font-body);
+    transition: color 0.15s, background 0.15s;
+}
+.more-tab:hover { color: var(--text); background: rgba(128,128,128,0.1); }
+.more-tab.active {
+    color: var(--secondary); border-bottom-color: var(--secondary);
+    background: rgba(245, 158, 11, 0.07);
+}
+.more-tab-content { padding: 6px; max-height: 330px; overflow-y: auto; }
+.more-item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 0.48rem 0.6rem; background: transparent; border: none;
+    border-radius: 6px; color: var(--text); font-size: 0.75rem;
+    cursor: pointer; text-align: left; font-family: var(--font-body);
+    transition: background 0.12s, color 0.12s;
+}
+.more-item:hover { background: rgba(128,128,128,0.14); }
+.more-item:active { background: rgba(128,128,128,0.2); }
+.more-item svg { flex-shrink: 0; color: var(--text-dim); transition: color 0.12s; }
+.more-item:hover svg { color: var(--text); }
+.more-item-badge {
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.more-footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 4px; background: rgba(0,0,0,0.14); }
+.more-footer-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 8px; }
+.more-item-danger { color: var(--danger); }
+.more-item-danger svg { color: var(--danger); }
+.more-item-danger:hover { background: rgba(239, 68, 68, 0.12); }
+.more-clear-confirm {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 0.4rem 0.6rem;
+}
+.more-clear-confirm span { font-size: 0.7rem; color: var(--text-dim); }
+
+/* ============================================
+   Press feedback - subtle scale on tap (ui-ux-pro-max)
+   ============================================ */
+.btn:active:not(:disabled),
+.navbar-icon-btn:active,
+.more-item:active,
+.more-tab:active,
+.more-share-btn:active {
+    transform: scale(0.96);
+}
+
+.btn,
+.navbar-icon-btn {
+    transition: var(--transition), transform 0.15s ease;
+}
+
+.more-item,
+.more-tab,
+.more-share-btn {
+    transition: background 0.15s, color 0.15s, transform 0.15s ease;
 }
