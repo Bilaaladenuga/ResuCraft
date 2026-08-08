@@ -8,12 +8,13 @@ import { trackEvent } from '../services/track';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
-    try {
-        const date = new Date(dateStr + '-01');
-        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    } catch {
-        return dateStr || 'Present';
-    }
+    const s = dateStr.trim();
+    if (/present|current|now|ongoing|till date|to date|todate/i.test(s)) return 'Present';
+    const m = s.match(/^(\d{4})-(\d{2})$/);
+    if (!m) return s;
+    const date = new Date(s + '-01');
+    if (isNaN(date.getTime())) return s;
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 function createDocxDocument(data: FormData): Document {
@@ -352,9 +353,10 @@ function createDocxDocument(data: FormData): Document {
 interface DOCXExportButtonProps {
     formData: FormData;
     templateName: string;
+    variant?: 'navbar' | 'menu';
 }
 
-const DOCXExportButton: React.FC<DOCXExportButtonProps> = ({ formData, templateName }) => {
+const DOCXExportButton: React.FC<DOCXExportButtonProps> = ({ formData, templateName, variant = 'navbar' }) => {
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
 
@@ -377,6 +379,29 @@ const DOCXExportButton: React.FC<DOCXExportButtonProps> = ({ formData, templateN
             setLoading(false);
         }
     };
+
+    // Menu variant — rendered inside the builder's More launcher as a list item
+    if (variant === 'menu') {
+        return (
+            <button
+                className="more-item"
+                onClick={handleExport}
+                disabled={loading}
+                title="Export as Microsoft Word document"
+                style={{ '--item-color': '#3b82f6' } as React.CSSProperties}
+            >
+                <FileText size={13} color="#3b82f6" />
+                <span style={{ flex: 1, textAlign: 'left' }}>Export DOCX</span>
+                {loading ? (
+                    <span className="more-item-badge" style={{ color: '#3b82f6' }}>
+                        <span className="spinner" style={{ width: 10, height: 10, display: 'inline-block', verticalAlign: 'middle' }} /> Generating…
+                    </span>
+                ) : done ? (
+                    <span className="more-item-badge" style={{ color: 'var(--success)' }}>Saved ✓</span>
+                ) : null}
+            </button>
+        );
+    }
 
     return (
         <button

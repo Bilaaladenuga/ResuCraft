@@ -6,7 +6,12 @@ import CustomSections from './CustomSections';
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
-    const date = new Date(dateStr + '-01');
+    const s = dateStr.trim();
+    if (/present|current|now|ongoing|till date|to date|todate/i.test(s)) return 'Present';
+    const m = s.match(/^(\d{4})-(\d{2})$/);
+    if (!m) return s;
+    const date = new Date(s + '-01');
+    if (isNaN(date.getTime())) return s;
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 

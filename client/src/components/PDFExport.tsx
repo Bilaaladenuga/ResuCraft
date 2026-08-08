@@ -1,8 +1,9 @@
 'use client';
-import React from 'react';
-import { PDFDownloadLink, Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import React, { useState } from 'react';
+import { PDFDownloadLink, Document, Page, View, Text, StyleSheet, pdf } from '@react-pdf/renderer';
 import { FormData } from '../types';
 import { trackEvent } from '../services/track';
+import { FileText } from 'lucide-react';
 
 // No font registration needed — Helvetica is built into @react-pdf/renderer
 // Using built-in fonts avoids blank PDFs caused by external font load failures
@@ -133,12 +134,13 @@ const styles = StyleSheet.create({
 
 const formatDate = (dateStr: string): string => {
     if (!dateStr) return 'Present';
-    try {
-        const date = new Date(dateStr + '-01');
-        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    } catch {
-        return dateStr || 'Present';
-    }
+    const s = dateStr.trim();
+    if (/present|current|now|ongoing|till date|to date|todate/i.test(s)) return 'Present';
+    const m = s.match(/^(\d{4})-(\d{2})$/);
+    if (!m) return s;
+    const date = new Date(s + '-01');
+    if (isNaN(date.getTime())) return s;
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
@@ -277,13 +279,58 @@ const PDFDocument: React.FC<{ data: FormData }> = ({ data }) => {
 interface PDFExportButtonProps {
     formData: FormData;
     templateName: string;
+    variant?: 'navbar' | 'menu';
 }
 
-const PDFExportButton: React.FC<PDFExportButtonProps> = ({ formData, templateName }) => {
+const PDFExportButton: React.FC<PDFExportButtonProps> = ({ formData, templateName, variant = 'navbar' }) => {
     const fileName = [formData.firstName, formData.lastName, 'Resume', templateName]
         .filter(Boolean)
         .join('_')
         .replace(/[\s/]+/g, '_') + '.pdf';
+    const [menuLoading, setMenuLoading] = useState(false);
+
+    // Menu variant — a plain button that generates the PDF only on click
+    // (avoids mounting a second PDFDownloadLink, which would render eagerly)
+    const handleMenuExport = async () => {
+        if (menuLoading) return;
+        setMenuLoading(true);
+        try {
+            const blob = await pdf(<PDFDocument data={formData} />).toBlob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            trackEvent('pdf_export');
+        } catch (err) {
+            console.error('PDF export failed:', err);
+        } finally {
+            setMenuLoading(false);
+        }
+    };
+
+    if (variant === 'menu') {
+        return (
+            <button
+                className="more-item"
+                onClick={handleMenuExport}
+                disabled={menuLoading}
+                title="Download as PDF"
+                style={{ '--item-color': '#ef4444' } as React.CSSProperties}
+            >
+                <FileText size={13} color="#ef4444" />
+                <span style={{ flex: 1, textAlign: 'left' }}>Export PDF</span>
+                {menuLoading && (
+                    <span className="more-item-badge" style={{ color: '#ef4444' }}>
+                        Generating…
+                    </span>
+                )}
+            </button>
+        );
+    }
 
     return (
         <PDFDownloadLink

@@ -5056,3 +5056,10 @@ img {
 .more-share-btn {
     transition: background 0.15s, color 0.15s, transform 0.15s ease;
 }
+
+/* ============================================
+   Launcher item color accents - per-item tint on hover
+   ============================================ */
+.more-item { --item-color: transparent; }
+.more-item:hover { background: color-mix(in srgb, var(--item-color) 10%, transparent); }
+.more-item:active { background: color-mix(in srgb, var(--item-color) 16%, transparent); }

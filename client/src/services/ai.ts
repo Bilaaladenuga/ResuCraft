@@ -924,12 +924,15 @@ export const parseExperienceEntries = (raw: string): Array<{
         const title = getVal('TITLE');
         if (!title) continue;
 
+        // Normalize 'Present'-style markers to empty string so dates render cleanly
+        const normalizeDate = (v: string): string => /present|current|now|ongoing|till date|to date|todate/i.test(v) ? '' : v;
+
         entries.push({
             title,
             company: getVal('COMPANY'),
             location: getVal('LOCATION'),
-            startDate: getVal('START'),
-            endDate: getVal('END'),
+            startDate: normalizeDate(getVal('START')),
+            endDate: normalizeDate(getVal('END')),
             description: bullets.join('\n')
         });
     }
@@ -959,12 +962,15 @@ export const parseEducationEntries = (raw: string): Array<{
         const school = getVal('SCHOOL');
         if (!school) continue;
 
+        // Normalize 'Present'-style markers to empty string so dates render cleanly
+        const normalizeDate = (v: string): string => /present|current|now|ongoing|till date|to date|todate/i.test(v) ? '' : v;
+
         entries.push({
             school,
             degree: getVal('DEGREE'),
             city: getVal('CITY'),
-            startDate: getVal('START'),
-            endDate: getVal('END'),
+            startDate: normalizeDate(getVal('START')),
+            endDate: normalizeDate(getVal('END')),
             description: getVal('DESCRIPTION')
         });
     }

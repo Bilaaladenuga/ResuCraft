@@ -720,79 +720,81 @@ const ResumeBuilder = () => {
                                         <div className="more-tab-content" role="tabpanel" aria-labelledby={`more-tab-${moreTab}`}>
                                             {moreTab === 'ai' && (<>
                                                 {/* Configure AI (with live status) */}
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}>
-                                                    <Settings size={13} />
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSettings(true); }} style={{ '--item-color': '#f59e0b' } as React.CSSProperties}>
+                                                    <Settings size={13} color="#f59e0b" />
                                                     <span style={{ flex: 1, textAlign: 'left' }}>Configure AI</span>
                                                     <span className="more-item-badge" style={{ color: hasApiKey ? 'var(--success)' : 'var(--secondary)' }}>
                                                         {hasApiKey ? 'Ready' : 'No key'}
                                                     </span>
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}>
-                                                    <FileText size={13} /> Cover Letter
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }} style={{ '--item-color': '#8b5cf6' } as React.CSSProperties}>
+                                                    <FileText size={13} color="#8b5cf6" /> Cover Letter
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}>
-                                                    <Globe size={13} /> Translate
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }} style={{ '--item-color': '#06b6d4' } as React.CSSProperties}>
+                                                    <Globe size={13} color="#06b6d4" /> Translate
                                                 </button>
                                             </>)}
 
                                             {moreTab === 'files' && (<>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowLinkedInModal(true); }}>
-                                                    <Linkedin size={13} /> LinkedIn Import
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowLinkedInModal(true); }} style={{ '--item-color': '#0a66c2' } as React.CSSProperties}>
+                                                    <Linkedin size={13} color="#0a66c2" /> LinkedIn Import
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowPDFImport(true); }}>
-                                                    <Upload size={13} /> Import PDF
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowPDFImport(true); }} style={{ '--item-color': '#ef4444' } as React.CSSProperties}>
+                                                    <Upload size={13} color="#ef4444" /> Import PDF
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowDOCXImport(true); }}>
-                                                    <Upload size={13} /> Import DOCX
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowDOCXImport(true); }} style={{ '--item-color': '#3b82f6' } as React.CSSProperties}>
+                                                    <Upload size={13} color="#3b82f6" /> Import DOCX
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSText(true); }}>
-                                                    <Copy size={13} /> Copy as Text (ATS)
+                                                <PDFExportButton formData={formData} templateName={template.name} variant="menu" />
+                                                <DOCXExportButton formData={formData} templateName={template.name} variant="menu" />
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSText(true); }} style={{ '--item-color': '#94a3b8' } as React.CSSProperties}>
+                                                    <Copy size={13} color="#94a3b8" /> Copy as Text (ATS)
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}>
-                                                    <Upload size={13} /> Import JSON
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }} style={{ '--item-color': '#a855f7' } as React.CSSProperties}>
+                                                    <Upload size={13} color="#a855f7" /> Import JSON
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleExportJSON(); }}>
-                                                    <Save size={13} /> Export JSON
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleExportJSON(); }} style={{ '--item-color': '#a855f7' } as React.CSSProperties}>
+                                                    <Save size={13} color="#a855f7" /> Export JSON
                                                 </button>
                                             </>)}
 
                                             {moreTab === 'ats' && (<>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}>
-                                                    <Shield size={13} /> ATS Checklist
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }} style={{ '--item-color': '#10b981' } as React.CSSProperties}>
+                                                    <Shield size={13} color="#10b981" /> ATS Checklist
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}>
-                                                    <Target size={13} /> Keyword Match
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }} style={{ '--item-color': '#f97316' } as React.CSSProperties}>
+                                                    <Target size={13} color="#f97316" /> Keyword Match
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}>
-                                                    <TrendingUp size={13} /> Score
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }} style={{ '--item-color': '#0ea5e9' } as React.CSSProperties}>
+                                                    <TrendingUp size={13} color="#0ea5e9" /> Score
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleValidateAll(); }}>
-                                                    <ShieldCheck size={13} /> Validate
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handleValidateAll(); }} style={{ '--item-color': '#84cc16' } as React.CSSProperties}>
+                                                    <ShieldCheck size={13} color="#84cc16" /> Validate
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}>
-                                                    <BookOpen size={13} /> Spell Check
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }} style={{ '--item-color': '#ec4899' } as React.CSSProperties}>
+                                                    <BookOpen size={13} color="#ec4899" /> Spell Check
                                                 </button>
                                             </>)}
 
                                             {moreTab === 'style' && (<>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }}>
-                                                    <PaintBucket size={13} /> Customize
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }} style={{ '--item-color': '#d946ef' } as React.CSSProperties}>
+                                                    <PaintBucket size={13} color="#d946ef" /> Customize
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); toggleTheme(); }}>
-                                                    {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); toggleTheme(); }} style={{ '--item-color': theme === 'dark' ? '#fbbf24' : '#818cf8' } as React.CSSProperties}>
+                                                    {theme === 'dark' ? <Sun size={13} color="#fbbf24" /> : <Moon size={13} color="#818cf8" />}
                                                     <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                                                 </button>
-                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handlePrint(); }}>
-                                                    <FileText size={13} /> Print / Save as PDF
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); handlePrint(); }} style={{ '--item-color': '#60a5fa' } as React.CSSProperties}>
+                                                    <FileText size={13} color="#60a5fa" /> Print / Save as PDF
                                                 </button>
-                                                <button className="more-item"
+                                                <button className="more-item" style={{ '--item-color': '#f59e0b' } as React.CSSProperties}
                                                     onClick={() => {
                                                         setShowMoreMenu(false);
                                                         if (pageWarningDismissed) { handleRestorePageWarning(); } else { handleDismissPageWarning(); }
                                                     }}
                                                     title={pageWarningDismissed ? 'Show the one-page warning again' : 'Hide the one-page warning'}
                                                 >
-                                                    <ShieldCheck size={13} />
+                                                    <ShieldCheck size={13} color="#f59e0b" />
                                                     <span style={{ flex: 1, textAlign: 'left' }}>One-Page Warning</span>
                                                     <Check size={12} color={pageWarningDismissed ? 'var(--text-dim)' : 'var(--success)'} />
                                                 </button>
@@ -801,11 +803,11 @@ const ResumeBuilder = () => {
 
                                         {/* Pinned footer */}
                                         <div className="more-footer">
-                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}>
-                                                <Sparkles size={13} /> Restart Tutorial
+                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }} style={{ '--item-color': '#06b6d4' } as React.CSSProperties}>
+                                                <Sparkles size={13} color="#06b6d4" /> Restart Tutorial
                                             </button>
-                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}>
-                                                <ArrowLeft size={13} /> Templates
+                                            <button className="more-item" onClick={() => { setShowMoreMenu(false); router.push('/templates'); }} style={{ '--item-color': '#3b82f6' } as React.CSSProperties}>
+                                                <ArrowLeft size={13} color="#3b82f6" /> Templates
                                             </button>
                                             <div className="more-footer-divider" />
                                             {showClearConfirm ? (
@@ -822,8 +824,8 @@ const ResumeBuilder = () => {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <button className="more-item more-item-danger" onClick={() => setShowClearConfirm(true)}>
-                                                    <Trash2 size={13} /> Clear Resume
+                                                <button className="more-item more-item-danger" onClick={() => setShowClearConfirm(true)} style={{ '--item-color': 'var(--danger)' } as React.CSSProperties}>
+                                                    <Trash2 size={13} color="var(--danger)" /> Clear Resume
                                                 </button>
                                             )}
                                         </div>
