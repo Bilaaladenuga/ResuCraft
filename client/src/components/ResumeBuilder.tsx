@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target } from 'lucide-react';
+import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target, Share2 } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -25,6 +25,7 @@ import KeywordMatchModal from './KeywordMatchModal';
 import FeedbackInbox from './FeedbackInbox';
 import StatsPanel from './StatsPanel';
 import Onboarding from './Onboarding';
+import ShareResumeModal from './ShareResumeModal';
 import { useToast } from './ToastContext';
 import { useTheme } from './ThemeContext';
 import { getTemplate } from '../templates';
@@ -98,6 +99,7 @@ const ResumeBuilder = () => {
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
     const [showKeywordMatch, setShowKeywordMatch] = useState(false);
+    const [showShare, setShowShare] = useState(false);
     const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
     const [showStatsPanel, setShowStatsPanel] = useState(false);
     const [showPDFImport, setShowPDFImport] = useState(false);
@@ -637,6 +639,15 @@ const ResumeBuilder = () => {
                             <PDFExportButton formData={formData} templateName={template.name} />
                             <DOCXExportButton formData={formData} templateName={template.name} />
 
+                            {/* Share resume (ALWAYS VISIBLE) */}
+                            <button className="btn btn-ghost btn-sm navbar-icon-btn"
+                                onClick={() => setShowShare(true)}
+                                title="Share Resume (link + QR)"
+                                aria-label="Share Resume"
+                                style={{ flexShrink: 0 }}>
+                                <Share2 size={14} />
+                            </button>
+
                             {/* Hidden file input for JSON import */}
                             <input
                                 ref={fileInputRef}
@@ -670,9 +681,23 @@ const ResumeBuilder = () => {
                                         borderRadius: 'var(--radius-sm)',
                                         boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
                                         zIndex: 200,
-                                        overflow: 'hidden',
+                                        overflowY: 'auto',
+                                        overflowX: 'hidden',
+                                        maxHeight: 'min(72vh, 560px)',
                                         padding: '4px'
                                     }}>
+                                                        {/* ===== Share (top) ===== */}
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowShare(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <Share2 size={13} /> Share Resume
+                                                        </button>
+                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+
+                                                        {/* ===== AI & Writing ===== */}
+                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.45rem 0.6rem 0.15rem' }}>
+                                                            AI & Writing
+                                                        </div>
                                                         {/* Configure AI (with live status) */}
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
@@ -689,22 +714,25 @@ const ResumeBuilder = () => {
                                                             </span>
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); toggleTheme(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
-                                                            <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                                                            onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
+                                                            <FileText size={13} /> Cover Letter
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); handlePrint(); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <FileText size={13} /> Print / Save as PDF
+                                                            onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
+                                                            <Globe size={13} /> Translate
                                                         </button>
-                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <ArrowLeft size={13} /> Templates
+                                                            onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <Sparkles size={13} /> Restart Tutorial
                                                         </button>
+
+                                                        {/* ===== Import / Export ===== */}
+                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
+                                                            Import / Export
+                                                        </div>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowLinkedInModal(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#0a66c2' }}>
@@ -729,21 +757,46 @@ const ResumeBuilder = () => {
                                                             onClick={() => { setShowMoreMenu(false); fileInputRef.current?.click(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <Upload size={13} /> Import JSON
-                                                        </button>                                                            <button className="btn btn-ghost btn-sm"
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); handleExportJSON(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <Save size={13} /> Export JSON
                                                         </button>
+
+                                                        {/* ===== ATS Tools ===== */}
+                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
+                                                            ATS Tools
+                                                        </div>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowOnboarding(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <Sparkles size={13} /> Restart Tutorial
+                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
+                                                            <Shield size={13} /> ATS Checklist
                                                         </button>
-                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
+                                                            <Target size={13} /> Keyword Match
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <TrendingUp size={13} /> Score
+                                                        </button>
+
+                                                        {/* ===== Checks & Appearance ===== */}
+                                                        <div style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)', padding: '0.6rem 0.6rem 0.15rem', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: '2px' }}>
+                                                            Checks & Appearance
+                                                        </div>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); handleValidateAll(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <ShieldCheck size={13} /> Validate
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <BookOpen size={13} /> Spell Check
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => {
@@ -761,39 +814,25 @@ const ResumeBuilder = () => {
                                                             <Check size={12} color={pageWarningDismissed ? 'var(--text-dim)' : 'var(--success)'} />
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowSpellCheck(true); }}
+                                                            onClick={() => { setShowMoreMenu(false); toggleTheme(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <BookOpen size={13} /> Spell Check
+                                                            {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                                                            <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
                                                             onClick={() => { setShowMoreMenu(false); setShowCustomizer(true); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
                                                             <PaintBucket size={13} /> Customize
-                                                        </button>                                                            <button className="btn btn-ghost btn-sm"
-                                                                onClick={() => { setShowMoreMenu(false); setShowCoverLetter(true); }}
-                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
-                                                                <FileText size={13} /> Cover Letter
-                                                            </button>
-                                                            <button className="btn btn-ghost btn-sm"
-                                                                onClick={() => { setShowMoreMenu(false); setShowTranslate(true); }}
-                                                                style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--accent)' }}>
-                                                                <Globe size={13} /> Translate
-                                                            </button>
-                                                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowATSChecklist(true); trackEvent('ats_check'); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: '#10b981' }}>
-                                                            <Shield size={13} /> ATS Checklist
                                                         </button>
                                                         <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }}
-                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem', color: 'var(--secondary)' }}>
-                                                            <Target size={13} /> Keyword Match
-                                                        </button>
-                                                        <button className="btn btn-ghost btn-sm"
-                                                            onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }}
+                                                            onClick={() => { setShowMoreMenu(false); handlePrint(); }}
                                                             style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
-                                                            <TrendingUp size={13} /> Score
+                                                            <FileText size={13} /> Print / Save as PDF
+                                                        </button>
+                                                        <button className="btn btn-ghost btn-sm"
+                                                            onClick={() => { setShowMoreMenu(false); router.push('/templates'); }}
+                                                            style={{ justifyContent: 'flex-start', width: '100%', fontSize: '0.75rem', padding: '0.4rem 0.6rem' }}>
+                                                            <ArrowLeft size={13} /> Templates
                                                         </button>
                                                         <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
                                                         {showClearConfirm ? (
@@ -1052,6 +1091,15 @@ const ResumeBuilder = () => {
                 onClose={() => setShowKeywordMatch(false)}
                 formData={formData}
                 setFormData={setFormData}
+            />
+
+            {/* Share Resume Modal */}
+            <ShareResumeModal
+                isOpen={showShare}
+                onClose={() => setShowShare(false)}
+                formData={formData}
+                templateId={templateId}
+                customization={customization}
             />
 
             {/* Template Customizer Modal */}

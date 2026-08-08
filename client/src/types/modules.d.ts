@@ -91,4 +91,8 @@ declare module 'lucide-react' {
     export const ChevronLeft: Icon;
     export const Quote: Icon;
     export const Users: Icon;
+    export const Share2: Icon;
+    export const Link2: Icon;
+    export const Printer: Icon;
+    export const Smartphone: Icon;
 }

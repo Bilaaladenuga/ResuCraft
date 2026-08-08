@@ -1,6 +1,7 @@
 import { ProviderConfig, AIProvider, AIPromptParams, TailorParams, PowerUpParams, SkillsParams, CoverLetterParams, ATSParams, WritingStyle, LanguageCode, FormData } from '../types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getStyleInstructions, getFallbackTone } from './prompts';
+import { TRANSLATION_DICTS } from './translationDicts';
 
 interface AIProvidersMap {
     [key: string]: AIProvider;
@@ -1266,66 +1267,49 @@ Return ONLY the translated version following the exact same format.`;
 };
 
 /**
- * Fallback: Template-based translation for common resume phrases
- * This provides a basic translation when no AI API key is configured
+ * Fallback: dictionary-based translation of common resume vocabulary.
+ * Works with NO AI key — every supported language has a real dictionary in
+ * translationDicts.ts. Longest terms are matched first and word boundaries
+ * are respected so "management" isn't clobbered by "manager".
+ * This is best-effort vocabulary translation; for accurate, natural
+ * full-resume translation users should configure an AI provider.
  */
 export const generateFallbackTranslation = (
     formData: FormData,
     targetLanguage: LanguageCode
 ): FormData => {
-    // For fallback, we do a simple label-aware translation of common fields
-    // using a dictionary approach. This won't be perfect but gives users
-    // something to work with.
-    const result: FormData = { ...formData };
+    if (targetLanguage === 'en') return { ...formData };
 
-    // Common resume translations per language
-    const translations: Record<string, Record<string, string>> = {
-        es: {},
-        fr: {},
-        de: {},
-        it: {},
-        pt: {},
-        nl: {},
-        ru: {},
-        ja: {},
-        zh: {},
-        ar: {},
-        ko: {},
-        hi: {},
-        tr: {},
-        pl: {},
-        sv: {},
-        da: {},
-        fi: {},
-        nb: {},
-        cs: {},
-        hu: {},
-        th: {},
-        vi: {},
-        el: {},
-        he: {},
-        en: {}
-    };
-
-    const dict = translations[targetLanguage];
+    const dict = TRANSLATION_DICTS[targetLanguage];
     if (!dict || Object.keys(dict).length === 0) {
-        // Return original unchanged — user needs API key for real translation
-        return result;
+        return { ...formData };
     }
 
-    // Apply dictionary translations to text fields
+    // Keys sorted longest-first so multi-word phrases win over single words
+    const entries = Object.entries(dict).sort((a, b) => b[0].length - a[0].length);
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     const translateText = (text: string): string => {
+        if (!text) return text;
         let translated = text;
-        for (const [key, value] of Object.entries(dict)) {
-            translated = translated.replace(new RegExp(key, 'gi'), value);
+        for (const [key, value] of entries) {
+            const re = new RegExp(`\\b${escapeRegExp(key)}\\b`, 'gi');
+            translated = translated.replace(re, (match) => {
+                // Preserve the original casing style of the matched word
+                const upper = match.charAt(0) === match.charAt(0).toUpperCase();
+                return upper ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+            });
         }
         return translated;
     };
 
-    result.summary = translateText(result.summary);
-    result.skillsRaw = translateText(result.skillsRaw);
-    result.designation = translateText(result.designation);
-    result.address = translateText(result.address);
+    const result: FormData = {
+        ...formData,
+        summary: translateText(formData.summary),
+        skillsRaw: translateText(formData.skillsRaw),
+        designation: translateText(formData.designation),
+        address: translateText(formData.address)
+    };
 
     result.experiences = result.experiences.map(exp => ({
         ...exp,
