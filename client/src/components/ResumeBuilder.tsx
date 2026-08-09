@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target, Share2 } from 'lucide-react';
+import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target, Share2, Zap } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -26,6 +26,7 @@ import FeedbackInbox from './FeedbackInbox';
 import StatsPanel from './StatsPanel';
 import Onboarding from './Onboarding';
 import ShareResumeModal from './ShareResumeModal';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import { useToast } from './ToastContext';
 import { useTheme } from './ThemeContext';
 import { getTemplate } from '../templates';
@@ -105,6 +106,7 @@ const ResumeBuilder = () => {
     const [showPDFImport, setShowPDFImport] = useState(false);
     const [showDOCXImport, setShowDOCXImport] = useState(false);
     const [showATSText, setShowATSText] = useState(false);
+    const [showShortcuts, setShowShortcuts] = useState(false);
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
     const [pageWarningDismissed, setPageWarningDismissed] = useState(false);
     const [previewZoom, setPreviewZoom] = useState<'fit' | '50' | '75' | '100'>('fit');
@@ -208,32 +210,100 @@ const ResumeBuilder = () => {
         refreshResumeList();
     }, [refreshResumeList, formData]);
 
-    // Keyboard shortcuts: Ctrl+Z = undo, Ctrl+Shift+Z = redo
+    // Immediate save — used by the Ctrl+S shortcut and the debounced auto-save
+    const performSave = useCallback((): boolean => {
+        let success = false;
+        if (currentResumeId) {
+            // Update existing resume
+            const stored = getResumeById(currentResumeId);
+            if (stored) {
+                success = saveResume(stored.meta, formData);
+            }
+        } else {
+            // Fall back to legacy draft
+            success = saveDraft(templateId, formData);
+        }
+        setSavedStatus(success ? 'saved' : 'error');
+        setTimeout(() => setSavedStatus(''), 2000);
+        return success;
+    }, [currentResumeId, formData, templateId]);
+
+    // Keep latest save/print callbacks in refs so the keydown listener binds only once
+    const performSaveRef = useRef(performSave);
+    const handlePrintRef = useRef(handlePrint);
+    useEffect(() => {
+        performSaveRef.current = performSave;
+        handlePrintRef.current = handlePrint;
+    }, [performSave, handlePrint]);
+
+    // Keyboard shortcuts: Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z or Ctrl+Y = redo,
+    // Ctrl/Cmd+S = save, Ctrl/Cmd+P = print, Ctrl/Cmd+E = export menu (Files tab),
+    // Ctrl/Cmd+/ or ? = shortcuts help, Esc = close menus/confirmations
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Don't interfere with text editing shortcuts
             const tag = (e.target as HTMLElement)?.tagName || '';
-            const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
-            if (isInput && (e.ctrlKey || e.metaKey)) {
-                // Allow native undo/redo in text fields — only intercept if modifier+shift+z
-                if (e.key === 'z' && e.shiftKey) {
+            const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable === true;
+            const mod = e.ctrlKey || e.metaKey;
+
+            // App-level shortcuts that should work even while typing in a field
+            if (mod && e.key === 's') {
+                e.preventDefault();
+                const ok = performSaveRef.current();
+                toastCtx.success(ok ? 'Resume saved ✓' : 'Nothing to save yet');
+                return;
+            }
+            if (mod && e.key === 'p') {
+                e.preventDefault();
+                handlePrintRef.current();
+                return;
+            }
+            if (mod && e.key === 'e') {
+                e.preventDefault();
+                setMoreTab('files');
+                setShowMoreMenu(true);
+                return;
+            }
+            if (mod && e.key === '/') {
+                e.preventDefault();
+                setShowShortcuts(true);
+                return;
+            }
+
+            if (isInput) {
+                // In text fields, keep native editing shortcuts — only Ctrl+Shift+Z redoes
+                if (mod && e.key === 'z' && e.shiftKey) {
                     e.preventDefault();
                     redo();
                 }
                 return;
             }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+
+            if (mod && e.key === 'z') {
                 e.preventDefault();
                 if (e.shiftKey) {
                     redo();
                 } else {
                     undo();
                 }
+                return;
+            }
+            if (mod && e.key === 'y') {
+                e.preventDefault();
+                redo();
+                return;
+            }
+            if (e.key === '?') {
+                setShowShortcuts(true);
+                return;
+            }
+            if (e.key === 'Escape') {
+                if (showMoreMenu) setShowMoreMenu(false);
+                if (showClearConfirm) setShowClearConfirm(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [undo, redo]);
+    }, [undo, redo, showMoreMenu, showClearConfirm]);
 
     // One-Page Checker — measure the rendered preview height at fixed A4 width (794px @ 96dpi),
     // compared against A4 height (1123px @ 96dpi). Temporarily forcing the width keeps the
@@ -294,19 +364,7 @@ const ResumeBuilder = () => {
 
         setSavedStatus('saving');
         saveTimerRef.current = setTimeout(() => {
-            let success = false;
-            if (currentResumeId) {
-                // Update existing resume
-                const stored = getResumeById(currentResumeId);
-                if (stored) {
-                    success = saveResume(stored.meta, formData);
-                }
-            } else {
-                // Fall back to legacy draft
-                success = saveDraft(templateId, formData);
-            }
-            setSavedStatus(success ? 'saved' : 'error');
-            setTimeout(() => setSavedStatus(''), 2000);
+            performSave();
         }, 1000);
 
         return () => {
@@ -314,7 +372,7 @@ const ResumeBuilder = () => {
                 clearTimeout(saveTimerRef.current);
             }
         };
-    }, [formData, templateId, currentResumeId]);
+    }, [formData, templateId, currentResumeId, performSave]);
 
     const handleValidateAll = useCallback(() => {
         const allErrors = validateAllSections(formData);
@@ -784,6 +842,9 @@ const ResumeBuilder = () => {
                                                     {theme === 'dark' ? <Sun size={13} color="#fbbf24" /> : <Moon size={13} color="#818cf8" />}
                                                     <span style={{ flex: 1, textAlign: 'left' }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                                                 </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowShortcuts(true); }} style={{ '--item-color': '#22d3ee' } as React.CSSProperties}>
+                                                    <Zap size={13} color="#22d3ee" /> Keyboard Shortcuts
+                                                </button>
                                                 <button className="more-item" onClick={() => { setShowMoreMenu(false); handlePrint(); }} style={{ '--item-color': '#60a5fa' } as React.CSSProperties}>
                                                     <FileText size={13} color="#60a5fa" /> Print / Save as PDF
                                                 </button>
@@ -978,6 +1039,7 @@ const ResumeBuilder = () => {
 
             {/* Settings Modal */}
             <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+            <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
             {/* LinkedIn Import Modal */}
             <LinkedInImportModal

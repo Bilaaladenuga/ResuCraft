@@ -70,7 +70,7 @@ const LandingPage = () => {
                         </nav>
                         <div className="navbar-actions">
                             <button
-                                className="btn btn-primary btn-sm"
+                                className="btn btn-primary navbar-cta"
                                 onClick={() => router.push('/templates')}
                                 aria-label="Get Started — browse templates"
                             >
@@ -209,7 +209,7 @@ const LandingPage = () => {
                                 <span>ATS fit</span>
                             </div>
                             <div className="hero-stat">
-                                <strong>7</strong>
+                                <strong>10+</strong>
                                 <span>templates</span>
                             </div>
                             <div className="hero-stat">

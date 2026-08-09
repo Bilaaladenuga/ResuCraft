@@ -15,6 +15,7 @@ export type TrackEvent =
     | 'keyword_match'
     | 'cover_letter'
     | 'cover_letter_export'
+    | 'cover_letter_pdf_export'
     | 'ai_generation';
 
 // Light dedupe: ignore the same event within 3 seconds.

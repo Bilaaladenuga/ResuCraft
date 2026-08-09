@@ -339,6 +339,12 @@ img {
     font-size: 0.75rem;
 }
 
+/* Navbar Get Started button — slightly larger than btn-sm for better visibility */
+.navbar-cta {
+    padding: 0.55rem 1.3rem;
+    font-size: 0.8rem;
+}
+
 .btn-ghost {
     background: transparent;
     color: var(--text-muted);

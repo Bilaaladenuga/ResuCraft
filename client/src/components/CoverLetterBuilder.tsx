@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Sparkles, FileText, Copy, Check, Trash2,
-    Save, Download, ChevronDown, ChevronUp, Clock,
+    Save, ChevronDown, ChevronUp, Clock,
     Plus, BookOpen, AlertCircle
 } from 'lucide-react';
 import CoverLetterTemplate from './CoverLetterTemplate';
@@ -26,6 +26,7 @@ import {
 } from '../services/storage';
 import { trackEvent } from '../services/track';
 import CoverLetterDOCXExport from './CoverLetterDOCXExport';
+import CoverLetterPDFExport from './CoverLetterPDFExport';
 
 interface CoverLetterBuilderProps {
     isOpen: boolean;
@@ -234,81 +235,6 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
         } catch {
             toastCtx.error('Failed to copy');
         }
-    };
-
-    const handleExportPDF = () => {
-        if (!clContent) return;
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            toastCtx.error('Please allow popups for PDF export');
-            return;
-        }
-
-        const styledContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Cover Letter - ${companyName || 'Company'}</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                    * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body {
-                        font-family: 'Inter', Georgia, serif;
-                        color: #1a1a1a;
-                        padding: 2.5rem 2.8rem;
-                        max-width: 794px;
-                        margin: 0 auto;
-                        line-height: 1.6;
-                    }
-                    .cl-header {
-                        text-align: center;
-                        padding-bottom: 1.25rem;
-                        margin-bottom: 1.5rem;
-                        border-bottom: 2px solid #e5e7eb;
-                    }
-                    .cl-name { font-size: 1.5rem; font-weight: 700; color: #111827; }
-                    .cl-role { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
-                    .cl-body p {
-                        margin-bottom: 0.85em;
-                        font-size: 0.92rem;
-                        color: #374151;
-                        line-height: 1.7;
-                    }
-                    .cl-signature {
-                        margin-top: 2rem;
-                        padding-top: 1rem;
-                        border-top: 2px solid #e5e7eb;
-                    }
-                    .cl-signature .name { font-weight: 600; color: #111827; }
-                    .cl-signature .role { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
-                    @media print {
-                        body { padding: 0; }
-                        .cl-header { border-bottom-color: #000; }
-                        .cl-signature { border-top-color: #000; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="cl-header">
-                    <div class="cl-name">${fullName}</div>
-                    <div class="cl-role">${position || formData.designation || ''}</div>
-                </div>
-                <div class="cl-body">
-                    ${clContent.split('\n').filter(l => l.trim()).map(l => `<p>${l.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`).join('')}
-                </div>
-                <div class="cl-signature">
-                    <div class="name">${fullName}</div>
-                    ${(position || formData.designation) ? `<div class="role">${position || formData.designation}</div>` : ''}
-                </div>
-                <script>
-                    window.onload = function() { window.print(); window.close(); }
-                </script>
-            </body>
-            </html>
-        `;
-
-        printWindow.document.write(styledContent);
-        printWindow.document.close();
     };
 
     const hasContent = clContent.trim().length > 0;
@@ -653,16 +579,14 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
                                             {copied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
                                             <span style={{ marginLeft: '3px' }}>{copied ? 'Copied' : 'Copy'}</span>
                                         </button>
-                                        <button
-                                            className="btn btn-ghost btn-sm"
-                                            onClick={handleExportPDF}
-                                            disabled={!hasContent}
-                                            title="Export as PDF"
-                                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.65rem' }}
-                                        >
-                                            <Download size={13} />
-                                            <span style={{ marginLeft: '3px' }}>PDF</span>
-                                        </button>
+                                        <CoverLetterPDFExport
+                                            content={clContent}
+                                            fileName={`Cover_Letter_${companyName || 'Company'}_${position || 'Role'}`}
+                                            senderName={fullName}
+                                            senderRole={position || formData.designation}
+                                            recipientName={recipientName}
+                                            companyName={companyName}
+                                        />
                                         <CoverLetterDOCXExport
                                             content={clContent}
                                             fileName={`Cover_Letter_${companyName || 'Company'}_${position || 'Role'}`}
