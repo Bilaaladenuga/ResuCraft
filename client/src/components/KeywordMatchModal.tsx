@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import JDRepositoryModal from './JDRepositoryModal';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useToast } from './ToastContext';
 import { FormData } from '../types';
 import {
@@ -47,6 +48,7 @@ const KeywordMatchModal: React.FC<KeywordMatchModalProps> = ({
 }) => {
     const dialogRef = useModalAccessibility(isOpen, onClose, 'ATS Keyword Match');
     const toastCtx = useToast();
+    const isMobile = useIsMobile();
 
     const [jdText, setJdText] = useState('');
     const [result, setResult] = useState<KeywordMatchResult | null>(null);
@@ -152,7 +154,7 @@ const KeywordMatchModal: React.FC<KeywordMatchModalProps> = ({
                             background: 'var(--primary-light)',
                             border: '1px solid var(--glass-border)',
                             borderRadius: 'var(--radius-lg)',
-                            overflow: 'hidden',
+                            overflowY: isMobile ? 'auto' : 'hidden',
                             maxHeight: '90vh',
                             display: 'flex',
                             flexDirection: 'column'
@@ -193,13 +195,14 @@ const KeywordMatchModal: React.FC<KeywordMatchModalProps> = ({
                             </button>
                         </div>
 
-                        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', flexDirection: isMobile ? 'column' : 'row' }}>
                             {/* Left: Job Description */}
                             <div style={{
-                                width: '44%',
+                                width: isMobile ? '100%' : '44%',
                                 padding: '1.25rem 1.5rem',
-                                overflowY: 'auto',
-                                borderRight: '1px solid var(--glass-border)',
+                                overflowY: isMobile ? 'visible' : 'auto',
+                                borderRight: isMobile ? 'none' : '1px solid var(--glass-border)',
+                                borderBottom: isMobile ? '1px solid var(--glass-border)' : 'none',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '0.75rem'
@@ -279,8 +282,8 @@ const KeywordMatchModal: React.FC<KeywordMatchModalProps> = ({
 
                             {/* Right: Results */}
                             <div style={{
-                                width: '56%',
-                                overflowY: 'auto',
+                                width: isMobile ? '100%' : '56%',
+                                overflowY: isMobile ? 'visible' : 'auto',
                                 padding: '1.25rem 1.5rem',
                                 display: 'flex',
                                 flexDirection: 'column',

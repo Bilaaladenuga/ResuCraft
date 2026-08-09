@@ -107,6 +107,7 @@ const ResumeBuilder = () => {
     const [showDOCXImport, setShowDOCXImport] = useState(false);
     const [showATSText, setShowATSText] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
     const [estimatedPages, setEstimatedPages] = useState<number | null>(null);
     const [pageWarningDismissed, setPageWarningDismissed] = useState(false);
     const [previewZoom, setPreviewZoom] = useState<'fit' | '50' | '75' | '100'>('fit');
@@ -694,9 +695,11 @@ const ResumeBuilder = () => {
                                 <Redo2 size={14} />
                             </button>
 
-                            {/* Export buttons (ALWAYS VISIBLE) */}
-                            <PDFExportButton formData={formData} templateName={template.name} />
-                            <DOCXExportButton formData={formData} templateName={template.name} />
+                            {/* Export buttons (ALWAYS VISIBLE — hidden on small screens, still in ⋮ Files tab) */}
+                            <div className="builder-nav-exports">
+                                <PDFExportButton formData={formData} templateName={template.name} />
+                                <DOCXExportButton formData={formData} templateName={template.name} />
+                            </div>
 
                             {/* Share resume (ALWAYS VISIBLE) */}
                             <button className="btn btn-ghost btn-sm navbar-icon-btn"
@@ -930,7 +933,27 @@ const ResumeBuilder = () => {
             )}
 
             {/* Builder Content */}
-            <div className="builder-content">
+            <div className={`builder-content ${mobileView === 'preview' ? 'mobile-preview' : 'mobile-edit'}`}>
+                {/* Mobile-only Edit/Preview switcher */}
+                <div className="builder-mobile-toggle no-print" role="tablist" aria-label="Switch between editing and preview">
+                    <button
+                        role="tab"
+                        aria-selected={mobileView === 'edit'}
+                        className={mobileView === 'edit' ? 'active' : ''}
+                        onClick={() => setMobileView('edit')}
+                    >
+                        <Edit3 size={14} /> Edit
+                    </button>
+                    <button
+                        role="tab"
+                        aria-selected={mobileView === 'preview'}
+                        className={mobileView === 'preview' ? 'active' : ''}
+                        onClick={() => setMobileView('preview')}
+                    >
+                        <FileText size={14} /> Preview
+                    </button>
+                </div>
+
                 {/* Left: Form + AI */}
                 <div className="builder-left no-print">
                     <ResumeForm

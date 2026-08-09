@@ -11,6 +11,7 @@ import { useToast } from './ToastContext';
 import { FormData, WritingStyle, WRITING_STYLES, SavedCoverLetter } from '../types';
 import { getSavedStyle, saveStyle } from '../services/prompts';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
+import { useIsMobile } from '../hooks/useIsMobile';
 import {
     generateCoverLetter,
     generateFallbackCoverLetter,
@@ -45,6 +46,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
 }) => {
     const dialogRef = useModalAccessibility(isOpen, onClose, 'Cover Letter Builder');
     const toastCtx = useToast();
+    const isMobile = useIsMobile();
     const fullName = [formData.firstName, formData.lastName].filter(Boolean).join(' ').trim() || 'Applicant';
 
     // Form state
@@ -260,7 +262,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
                             background: 'var(--primary-light)',
                             border: '1px solid var(--glass-border)',
                             borderRadius: 'var(--radius-lg)',
-                            overflow: 'hidden',
+                            overflowY: isMobile ? 'auto' : 'hidden',
                             maxHeight: '90vh',
                             display: 'flex',
                             flexDirection: 'column'
@@ -311,14 +313,16 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
                         <div style={{
                             display: 'flex',
                             flex: 1,
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            flexDirection: isMobile ? 'column' : 'row'
                         }}>
                             {/* Left: Form */}
                             <div style={{
-                                width: '45%',
+                                width: isMobile ? '100%' : '45%',
                                 padding: '1.25rem 1.5rem',
-                                overflowY: 'auto',
-                                borderRight: '1px solid var(--glass-border)',
+                                overflowY: isMobile ? 'visible' : 'auto',
+                                borderRight: isMobile ? 'none' : '1px solid var(--glass-border)',
+                                borderBottom: isMobile ? '1px solid var(--glass-border)' : 'none',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '0.85rem'
@@ -545,7 +549,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({
 
                             {/* Right: Preview */}
                             <div style={{
-                                width: '55%',
+                                width: isMobile ? '100%' : '55%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 background: 'rgba(255,255,255,0.02)'
