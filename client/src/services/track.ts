@@ -16,7 +16,9 @@ export type TrackEvent =
     | 'cover_letter'
     | 'cover_letter_export'
     | 'cover_letter_pdf_export'
-    | 'ai_generation';
+    | 'ai_generation'
+    | 'jd_optimizer'
+    | 'jd_optimizer_tailor';
 
 // Light dedupe: ignore the same event within 3 seconds.
 // Prevents double-counts from quick re-clicks or effect re-runs.

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target, Share2, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';import { Sparkles, Settings, ArrowLeft, ShieldCheck, AlertCircle, Save, Upload, Trash2, Linkedin, TrendingUp, Files, ChevronDown, Plus, Edit3, Copy, Check, BookOpen, Undo2, Redo2, MoreHorizontal, PaintBucket, FileText, Globe, Sun, Moon, Shield, X, Maximize2, Search, Target, Share2, Zap, Wand2 } from 'lucide-react';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import AIPanel from './AIPanel';
@@ -22,6 +22,7 @@ import CoverLetterBuilder from './CoverLetterBuilder';
 import TranslateModal from './TranslateModal';
 import ATSChecklistModal from './ATSChecklistModal';
 import KeywordMatchModal from './KeywordMatchModal';
+import JDOptimizerModal from './JDOptimizerModal';
 import FeedbackInbox from './FeedbackInbox';
 import StatsPanel from './StatsPanel';
 import Onboarding from './Onboarding';
@@ -100,6 +101,7 @@ const ResumeBuilder = () => {
     const [showTranslate, setShowTranslate] = useState(false);
     const [showATSChecklist, setShowATSChecklist] = useState(false);
     const [showKeywordMatch, setShowKeywordMatch] = useState(false);
+    const [showJDOptimizer, setShowJDOptimizer] = useState(false);
     const [showShare, setShowShare] = useState(false);
     const [showFeedbackInbox, setShowFeedbackInbox] = useState(false);
     const [showStatsPanel, setShowStatsPanel] = useState(false);
@@ -826,6 +828,9 @@ const ResumeBuilder = () => {
                                                 <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowKeywordMatch(true); }} style={{ '--item-color': '#f97316' } as React.CSSProperties}>
                                                     <Target size={13} color="#f97316" /> Keyword Match
                                                 </button>
+                                                <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowJDOptimizer(true); }} style={{ '--item-color': '#8b5cf6' } as React.CSSProperties}>
+                                                    <Wand2 size={13} color="#8b5cf6" /> JD Optimizer
+                                                </button>
                                                 <button className="more-item" onClick={() => { setShowMoreMenu(false); setShowScoreModal(true); trackEvent('resume_score'); }} style={{ '--item-color': '#0ea5e9' } as React.CSSProperties}>
                                                     <TrendingUp size={13} color="#0ea5e9" /> Score
                                                 </button>
@@ -1061,7 +1066,7 @@ const ResumeBuilder = () => {
             </div>
 
             {/* Settings Modal */}
-            <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+            <SettingsModal isOpen={showSettings} onClose={() => { setShowSettings(false); setHasApiKey(checkApiKey()); }} />
             <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
             {/* LinkedIn Import Modal */}
@@ -1140,6 +1145,17 @@ const ResumeBuilder = () => {
                 onClose={() => setShowKeywordMatch(false)}
                 formData={formData}
                 setFormData={setFormData}
+            />
+
+            {/* JD Optimizer Modal */}
+            <JDOptimizerModal
+                isOpen={showJDOptimizer}
+                onClose={() => setShowJDOptimizer(false)}
+                formData={formData}
+                setFormData={setFormData}
+                industry={template.industry}
+                hasApiKey={hasApiKey}
+                onOpenSettings={() => setShowSettings(true)}
             />
 
             {/* Share Resume Modal */}
